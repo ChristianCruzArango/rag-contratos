@@ -221,13 +221,16 @@ const DEFINICIONES_BASE = [
 function contexto(tipo, seed) {
   rnd = mulberry32(seed);
   const esPersonaB = tipo.docType === 'laboral' || tipo.key === 'cuota-litis';
+  const nombreAElegido = pick(EMPRESAS);
   return {
     tipo,
     A: tipo.rolA, B: tipo.rolB,
-    nombreA: pick(EMPRESAS),
+    nombreA: nombreAElegido,
     nitA: nit(),
     repA: pick(NOMBRES),
-    nombreB: esPersonaB ? pick(NOMBRES) : pick(EMPRESAS),
+    nombreB: esPersonaB
+      ? pick(NOMBRES)
+      : pick(EMPRESAS.filter((e) => e !== nombreAElegido)),
     idB: esPersonaB ? cedula() : nit(),
     repB: pick(NOMBRES),
     ciudad: pick(CIUDADES),
@@ -238,6 +241,20 @@ function contexto(tipo, seed) {
     direccion: `${pick(['Calle','Carrera','Avenida','Transversal','Diagonal'])} ${int(1,180)} No. ${int(1,120)}-${int(1,99)}, ${pick(['Oficina','Apartamento','Local','Piso'])} ${int(101,1805)}`,
     matricula: `${int(50,600)}-${int(100000,999999)}`,
     penal: money(10000000, 200000000),
+    // Datos que las cláusulas clave citan de forma literal y verificable.
+    // Un salario mensual no se mide con la misma vara que el valor de un
+    // contrato de obra: se calcula aparte para que la cifra sea creíble.
+    salario: money(1_500_000, 18_000_000),
+    preavisoDias: pick([15, 30, 45, 60, 90]),
+    garantiaPct: pick([10, 15, 20, 25, 30]),
+    moraPct: pick(['1,5%', '2%', '2,5%']),
+    ciudadArbitraje: pick(CIUDADES),
+    arbitros: pick([1, 3]),
+    confidencialidadAnios: pick([2, 3, 5, 10]),
+    diaPago: pick([5, 10, 15, 20, 25, 30]),
+    cuotas: pick([1, 2, 4, 6, 12]),
+    correoA: `notificaciones@${'empresa' + int(10, 99)}.com.co`,
+    correoB: `contacto@${'contraparte' + int(10, 99)}.com.co`,
     seed,
   };
 }
@@ -338,6 +355,173 @@ function clausula(ctx, num, titulo, temas, minNumerales = 4, maxNumerales = 9) {
   return out;
 }
 
+/* ------------------------------------------- cláusulas con contenido propio
+ * Las cláusulas de relleno servían para dar volumen, pero su cuerpo no tenía
+ * nada que ver con su título: una cláusula llamada "PLAZO Y VIGENCIA" podía
+ * hablar de seguridad social. Eso hace inservible el contrato como banco de
+ * pruebas — no se puede comprobar si el RAG recupera el fragmento correcto si
+ * el fragmento correcto no existe.
+ *
+ * Éstas sí dicen lo que su título anuncia, con cifras tomadas del contexto y
+ * por tanto únicas y verificables en cada documento.                        */
+
+const esLaboral = (ctx) => ctx.tipo.docType === 'laboral';
+/** Sólo el contrato laboral a término indefinido; el fijo tiene sus reglas. */
+const esIndefinido = (ctx) => ctx.tipo.key === 'laboral-indefinido';
+
+const CLAUSULAS_CLAVE = {
+  'OBJETO DEL CONTRATO': (ctx) => [
+    `El objeto del presente Contrato es ${ctx.tipo.objeto}, en las condiciones de modo, tiempo y lugar previstas en este documento y en sus Anexos.`,
+    `El objeto se ejecutará en ${ctx.ciudad}${ctx.direccion ? `, en la dirección ${ctx.direccion}` : ''}. Cualquier cambio de lugar requiere autorización escrita previa de ${ctx.A}.`,
+    `Se entienden incorporados al objeto los Anexos que forman parte integral del Contrato. En caso de contradicción prevalece el cuerpo del Contrato.`,
+    `El alcance no comprende prestaciones distintas de las aquí descritas. Toda actividad adicional requerirá otrosí suscrito por los representantes legales.`,
+  ],
+
+  'PLAZO Y VIGENCIA': (ctx) => [
+    esIndefinido(ctx)
+      ? `El presente Contrato se celebra a término indefinido y regirá a partir del ${ctx.fechaSuscripcion}. No obstante, las Partes pactan un período de prueba de dos (2) meses contados desde esa misma fecha.`
+      : esLaboral(ctx)
+        ? `El presente Contrato se celebra a término fijo por ${ctx.plazoMeses} meses, contados a partir del ${ctx.fechaSuscripcion}. Las Partes pactan un período de prueba equivalente a la quinta parte del término pactado, sin exceder dos (2) meses.`
+        : `El plazo de ejecución del presente Contrato es de ${ctx.plazoMeses} meses, contados a partir del ${ctx.fechaSuscripcion}.`,
+    esLaboral(ctx)
+      ? `Durante el período de prueba cualquiera de las Partes podrá dar por terminado el Contrato sin preaviso y sin indemnización, conforme al Código Sustantivo del Trabajo.`
+      : `El plazo comenzará a correr desde la suscripción del acta de inicio. La demora en suscribirla no prorroga el término pactado salvo acuerdo escrito.`,
+    `La vigencia del Contrato se extiende por ${ctx.plazoMeses} meses más para efectos de las garantías, la liquidación y las obligaciones de confidencialidad que le sobrevivan.`,
+    `El vencimiento del plazo no extingue las obligaciones pendientes de cumplimiento ni las que por su naturaleza deban perdurar.`,
+  ],
+
+  'VALOR Y FORMA DE PAGO': (ctx) => [
+    esLaboral(ctx)
+      ? `El salario mensual pactado asciende a $${ctx.salario} M/CTE, pagadero el día ${ctx.diaPago} de cada mes por nómina electrónica.`
+      : `El valor total del presente Contrato asciende a la suma de $${ctx.valor} M/CTE, incluidos todos los impuestos, costos directos e indirectos y utilidad.`,
+    esLaboral(ctx)
+      ? `Sobre el salario se aplicarán los descuentos de ley por aportes a seguridad social y los autorizados por escrito por el trabajador.`
+      : `El valor se pagará en ${ctx.cuotas} ${ctx.cuotas === 1 ? 'contado único' : 'cuotas'}, previa presentación de la factura electrónica y del certificado de cumplimiento suscrito por el supervisor.`,
+    esLaboral(ctx)
+      ? `El pago se hará por transferencia electrónica a la cuenta de nómina que el trabajador registre en ${pick(BANCOS)}.`
+      : `Los pagos se harán por transferencia electrónica a la cuenta registrada en ${pick(BANCOS)}, dentro de los treinta (30) días calendario siguientes a la radicación de la factura.`,
+    `La mora en el pago causará intereses a la tasa del ${ctx.moraPct} mensual, sin exceder la tasa máxima legal certificada por la Superintendencia Financiera de Colombia.`,
+    `Sobre el valor se aplicarán las retenciones de ley vigentes al momento del pago. Las Partes declaran que no habrá reconocimientos adicionales por ningún concepto.`,
+  ],
+
+  'PRÓRROGAS Y RENOVACIÓN': (ctx) => [
+    `El Contrato podrá prorrogarse por períodos iguales al inicial mediante otrosí escrito suscrito antes del vencimiento.`,
+    esLaboral(ctx) && !esIndefinido(ctx)
+      ? `Si ninguna de las Partes avisa su intención de no prorrogar con al menos treinta (30) días de antelación al vencimiento, el Contrato se entenderá prorrogado por un término igual. Sólo podrá prorrogarse de este modo hasta tres (3) veces consecutivas.`
+      : `Si ninguna de las Partes manifiesta su intención de no prorrogar con al menos ${ctx.preavisoDias} días de antelación al vencimiento, el Contrato se entenderá prorrogado automáticamente por ${ctx.plazoMeses} meses más.`,
+    `En cada prórroga el valor se reajustará en el IPC certificado por el DANE para el año inmediatamente anterior.`,
+    `Las prórrogas no implican novación de las obligaciones ni liberan las garantías vigentes, que deberán ampliarse por el nuevo período.`,
+  ],
+
+  'CLÁUSULA PENAL PECUNIARIA': (ctx) => [
+    `En caso de incumplimiento total o parcial de las obligaciones, la parte incumplida pagará a título de cláusula penal la suma de $${ctx.penal} M/CTE.`,
+    `El pago de la cláusula penal no extingue la obligación principal ni impide exigir el cumplimiento, y se imputará como pago parcial de los perjuicios causados.`,
+    `La cláusula penal podrá hacerse efectiva directamente de los saldos pendientes de pago o de la garantía constituida, sin necesidad de requerimiento judicial previo.`,
+    `Las Partes declaran que el monto pactado guarda proporción con el valor del Contrato y renuncian a solicitar su reducción, salvo en los casos previstos en la ley.`,
+  ],
+
+  'MULTAS Y APREMIOS': (ctx) => [
+    `El retardo en el cumplimiento dará lugar a multas diarias equivalentes al ${pick(['0,1%', '0,2%', '0,5%'])} del valor total del Contrato, por cada día de mora.`,
+    `Las multas no podrán superar en conjunto el ${ctx.garantiaPct}% del valor total del Contrato. Alcanzado ese tope, ${ctx.A} podrá declarar la terminación por incumplimiento.`,
+    `La imposición de multas requiere requerimiento escrito previo y concederá a la parte requerida cinco (5) días hábiles para presentar descargos.`,
+    `Las multas se descontarán de los pagos pendientes. Si no hubiere saldos suficientes, se harán efectivas contra la garantía.`,
+  ],
+
+  'CAUSALES DE TERMINACIÓN': (ctx) => [
+    `El Contrato terminará por el vencimiento del plazo pactado, por mutuo acuerdo escrito entre las Partes o por las causales legales.`,
+    `Constituyen causales de terminación unilateral: el incumplimiento grave de cualquier obligación esencial, la mora superior a ${ctx.preavisoDias} días en el cumplimiento de una prestación, y la disolución o liquidación de cualquiera de las Partes.`,
+    `También son causales la cesión no autorizada del Contrato, la pérdida de las condiciones habilitantes y la inclusión de cualquiera de las Partes en listas restrictivas.`,
+    `La terminación por incumplimiento no requiere declaración judicial previa y se hará efectiva con la comunicación escrita que la invoque.`,
+  ],
+
+  'TERMINACIÓN ANTICIPADA Y SUS EFECTOS': (ctx) => [
+    `Cualquiera de las Partes podrá dar por terminado el Contrato de manera anticipada y sin justa causa, mediante preaviso escrito de ${ctx.preavisoDias} días calendario.`,
+    esLaboral(ctx)
+      ? `La terminación sin justa causa por parte del empleador dará lugar a la indemnización prevista en el artículo 64 del Código Sustantivo del Trabajo.`
+      : `La terminación anticipada sin justa causa obliga a quien la invoca a reconocer a la contraparte una indemnización equivalente al ${ctx.garantiaPct}% del valor pendiente de ejecución.`,
+    `Terminado el Contrato, las Partes suscribirán acta de liquidación dentro de los ${ctx.preavisoDias} días siguientes, donde constarán los saldos a favor o en contra.`,
+    `Sobreviven a la terminación las obligaciones de confidencialidad, las garantías vigentes y las estipulaciones sobre solución de controversias.`,
+  ],
+
+  'GARANTÍAS Y AMPAROS': (ctx) => [
+    esLaboral(ctx)
+      ? `${ctx.A} mantendrá vigente la afiliación de ${ctx.B} al Sistema de Seguridad Social Integral y a la Administradora de Riesgos Laborales, y responderá por las prestaciones a su cargo.`
+      : `Para garantizar el cumplimiento, ${ctx.B} constituirá a favor de ${ctx.A} una garantía por el ${ctx.garantiaPct}% del valor total del Contrato, esto es, la suma aproximada de $${ctx.penal} M/CTE.`,
+    esLaboral(ctx)
+      ? `${ctx.A} entregará los elementos de protección personal que el cargo requiera y practicará los exámenes médicos ocupacionales de ingreso, periódicos y de retiro.`
+      : `La garantía amparará el cumplimiento general, el pago de salarios y prestaciones sociales, la calidad del servicio y la responsabilidad civil extracontractual.`,
+    `La vigencia de los amparos se extenderá por el plazo del Contrato y ${ctx.plazoMeses} meses más, y deberá ampliarse en caso de prórroga o adición.`,
+    `La no constitución o la no ampliación oportuna de la garantía constituye causal de terminación por incumplimiento.`,
+  ],
+
+  'CONFIDENCIALIDAD DE LA INFORMACIÓN': (ctx) => [
+    `Las Partes se obligan a mantener bajo estricta reserva toda información técnica, comercial, financiera o personal a la que accedan con ocasión del Contrato.`,
+    `La obligación de confidencialidad se mantendrá vigente durante la ejecución del Contrato y por ${ctx.confidencialidadAnios} años más contados desde su terminación.`,
+    `No se considera confidencial la información que sea de dominio público, la que la parte receptora ya conociera legítimamente, ni la que deba revelarse por orden de autoridad competente.`,
+    `La violación de esta cláusula dará lugar a la cláusula penal pactada, sin perjuicio de las acciones civiles y penales que correspondan.`,
+  ],
+
+  'PROTECCIÓN DE DATOS PERSONALES': (ctx) => [
+    `El tratamiento de datos personales se sujeta a la Ley 1581 de 2012 y al Decreto 1074 de 2015. Cada Parte actúa como Responsable respecto de sus propias bases de datos.`,
+    `Cuando una Parte trate datos por cuenta de la otra actuará como Encargada, y sólo podrá hacerlo para las finalidades autorizadas por escrito.`,
+    `Los titulares podrán ejercer sus derechos de conocer, actualizar, rectificar y suprimir sus datos escribiendo a ${ctx.correoA}.`,
+    `Ante un incidente de seguridad que comprometa datos personales, la Parte afectada notificará a la otra dentro de las cuarenta y ocho (48) horas siguientes a su detección.`,
+  ],
+
+  'NOTIFICACIONES Y DOMICILIO CONTRACTUAL': (ctx) => [
+    `Las comunicaciones entre las Partes se surtirán por escrito a las siguientes direcciones: ${ctx.A} — ${ctx.direccion}, correo ${ctx.correoA}; ${ctx.B} — correo ${ctx.correoB}.`,
+    `Las comunicaciones se entenderán recibidas al día hábil siguiente a su envío. Las remitidas por correo electrónico requieren acuse de recibo.`,
+    `Todo cambio de dirección o de correo deberá informarse con cinco (5) días hábiles de antelación; mientras no se informe, serán válidas las notificaciones a los datos aquí registrados.`,
+    `Para todos los efectos legales las Partes fijan como domicilio contractual la ciudad de ${ctx.ciudad}.`,
+  ],
+
+  'SOLUCIÓN DE CONTROVERSIAS': (ctx) => [
+    `Toda diferencia se someterá primero a arreglo directo entre los representantes legales, por un término de ${ctx.preavisoDias} días calendario contados desde la comunicación que la plantee.`,
+    `Agotado el arreglo directo sin acuerdo, las Partes acudirán a conciliación ante un centro legalmente autorizado de la ciudad de ${ctx.ciudad}.`,
+    `Sólo fracasada la conciliación podrá acudirse a la jurisdicción competente o al tribunal de arbitramento, según lo previsto en este Contrato.`,
+    `Mientras se adelantan estos mecanismos, las Partes continuarán ejecutando las obligaciones que no sean objeto de la controversia.`,
+  ],
+
+  'CLÁUSULA COMPROMISORIA': (ctx) => [
+    `Las diferencias que no se resuelvan por arreglo directo ni por conciliación se someterán a un tribunal de arbitramento en la ciudad de ${ctx.ciudadArbitraje}.`,
+    `El tribunal estará integrado por ${ctx.arbitros} árbitro${ctx.arbitros === 1 ? '' : 's'}, designado${ctx.arbitros === 1 ? '' : 's'} de común acuerdo y, en su defecto, por sorteo del centro de arbitraje de la Cámara de Comercio de ${ctx.ciudadArbitraje}.`,
+    `El tribunal fallará en derecho y se regirá por el reglamento del centro de arbitraje respectivo. Los costos se asumirán por partes iguales, salvo condena en costas.`,
+    `El laudo será definitivo y obligatorio para las Partes.`,
+  ],
+
+  'LEY APLICABLE Y JURISDICCIÓN': (ctx) => [
+    `El presente Contrato se rige íntegramente por la ley colombiana.`,
+    esLaboral(ctx)
+      ? `En lo no previsto se aplicarán el Código Sustantivo del Trabajo y las normas que lo modifiquen o complementen.`
+      : `En lo no previsto se aplicarán el Código Civil y el Código de Comercio, en ese orden.`,
+    `Las Partes se someten a la jurisdicción de los jueces de ${ctx.ciudad}, sin perjuicio de la cláusula compromisoria pactada.`,
+    `La invalidez de alguna estipulación no afecta la validez de las demás, que conservarán plenos efectos.`,
+  ],
+
+  'SUPERVISIÓN Y CONTROL DE LA EJECUCIÓN': (ctx) => [
+    `${ctx.A} designará un supervisor encargado de verificar el cumplimiento, impartir instrucciones y suscribir las actas y certificados de cumplimiento.`,
+    `El supervisor no tiene facultad para modificar el Contrato ni para autorizar mayores valores; toda modificación requiere otrosí escrito.`,
+    `${ctx.B} atenderá las observaciones del supervisor dentro de los cinco (5) días hábiles siguientes a su comunicación.`,
+    `Se realizarán reuniones de seguimiento con periodicidad ${pick(['mensual', 'bimestral', 'trimestral'])}, de las que se levantará acta suscrita por ambas Partes.`,
+  ],
+
+  'PROPIEDAD INTELECTUAL E INDUSTRIAL': (ctx) => [
+    `Cada Parte conserva la titularidad de la propiedad intelectual e industrial de la que era titular antes de la suscripción del Contrato.`,
+    `Los desarrollos, obras y resultados que se produzcan con ocasión de la ejecución serán de titularidad de ${ctx.A}, quien podrá explotarlos sin límite de territorio ni de tiempo.`,
+    `${ctx.B} cede desde ya los derechos patrimoniales de autor sobre tales resultados, y declara que no infringen derechos de terceros.`,
+    `El uso de marcas, logotipos o signos distintivos de una Parte por la otra requiere autorización escrita previa y se limita a los fines del Contrato.`,
+  ],
+};
+
+/** Arma una cláusula con contenido coherente con su título. */
+function clausulaClave(ctx, num, titulo, numerales) {
+  let out = `CLÁUSULA ${ordinal(num)}. ${titulo.toUpperCase()}.\n\n`;
+  numerales.forEach((texto, i) => {
+    out += `${num}.${i + 1}. ${texto}\n\n`;
+  });
+  return out;
+}
+
 const TITULOS_CLAUSULA = [
   'OBJETO DEL CONTRATO', 'ALCANCE DE LAS OBLIGACIONES', 'OBLIGACIONES ESPECIALES DE LA PARTE CONTRATANTE',
   'OBLIGACIONES ESPECIALES DE LA PARTE CONTRATISTA', 'VALOR Y FORMA DE PAGO', 'FACTURACIÓN Y REQUISITOS TRIBUTARIOS',
@@ -418,7 +602,12 @@ function generarTexto(tipo, seed, factor = 1) {
   // Cláusulas específicas del tipo de contrato primero, luego las generales.
   while (countWords(cuerpo) < objetivo * 0.82) {
     const titulo = titulos.length ? titulos.shift() : `DISPOSICIONES COMPLEMENTARIAS (CONTINUACIÓN ${num})`;
-    cuerpo += clausula(ctx, num, titulo, temas, 4, 9);
+    const clave = CLAUSULAS_CLAVE[titulo];
+    // Las cláusulas clave dicen lo que su título anuncia; el resto es relleno,
+    // que es lo que de verdad son las cláusulas accesorias de un contrato.
+    cuerpo += clave
+      ? clausulaClave(ctx, num, titulo, clave(ctx))
+      : clausula(ctx, num, titulo, temas, 4, 9);
     num++;
   }
 
@@ -582,7 +771,7 @@ for (let i = 0; i < TIPOS.length; i++) {
     partes: { a: r.ctx.nombreA, b: r.ctx.nombreB },
     ciudad: r.ctx.ciudad,
     fecha: r.ctx.fechaSuscripcion,
-    valor: `$${r.ctx.valor}`,
+    valor: r.ctx.tipo.docType === 'laboral' ? `$${r.ctx.salario} /mes` : `$${r.ctx.valor}`,
     plazo_meses: r.ctx.plazoMeses,
     paginas: r.paginas,
     palabras: r.palabras,

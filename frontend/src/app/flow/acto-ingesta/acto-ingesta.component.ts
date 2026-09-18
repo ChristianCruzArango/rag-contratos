@@ -10,8 +10,12 @@ import { VectorSpaceComponent } from '../../viz/vector-space/vector-space.compon
 import { HnswGraphComponent } from '../../viz/hnsw-graph/hnsw-graph.component';
 import { EmbeddingForgeComponent } from '../../viz/embedding-forge/embedding-forge.component';
 import { ChunkRowComponent } from '../../viz/chunk-row/chunk-row.component';
+import { EstadoComponent } from '../../ui/estado/estado.component';
+import { PasoEstadoComponent } from '../../ui/paso-estado/paso-estado.component';
 import type { EspacioVectorial } from '../../core/pipeline/pipeline.models';
 import type { EsquemaTabla, RagStats } from '../../core/rag/rag.models';
+import { pedir } from '../../core/carga/carga';
+import { type Carga, dato, reposo } from '../../core/carga/carga.models';
 
 @Component({
   selector: 'app-acto-ingesta',
@@ -26,36 +30,45 @@ import type { EsquemaTabla, RagStats } from '../../core/rag/rag.models';
     HnswGraphComponent,
     EmbeddingForgeComponent,
     ChunkRowComponent,
+    EstadoComponent,
+    PasoEstadoComponent,
   ],
   templateUrl: './acto-ingesta.component.html',
   styleUrl: '../acto.scss',
 })
 export class ActoIngestaComponent {
   protected readonly store = inject(PipelineStore);
-  protected readonly stats = signal<RagStats | null>(null);
+  protected readonly stats = signal<Carga<RagStats>>(reposo());
   /** El esquema de `chunks` tal como lo describe Postgres ahora mismo. */
-  protected readonly esquema = signal<EsquemaTabla | null>(null);
+  protected readonly esquema = signal<Carga<EsquemaTabla>>(reposo());
   protected readonly arrastrando = signal(false);
-  protected readonly espacio = signal<EspacioVectorial | null>(null);
+  protected readonly espacio = signal<Carga<EspacioVectorial>>(reposo());
 
   private readonly rag = inject(RagService);
 
   /** Dimensión del vector: la del índice, o la del último lote indexado. */
   protected readonly dimensiones = computed(
-    () => this.ultimoLote()?.dimensiones ?? this.stats()?.dimensiones ?? 0,
+    () => this.ultimoLote()?.dimensiones ?? dato(this.stats())?.dimensiones ?? 0,
   );
+
+  /** El esquema ya recibido, para las plantillas. */
+  protected readonly esquemaDato = computed(() => dato(this.esquema()));
+  protected readonly statsDato = computed(() => dato(this.stats()));
+  protected readonly espacioDato = computed(() => dato(this.espacio()));
+  protected readonly esquemaFallo = computed(() => {
+    const c = this.esquema();
+    return c.estado === 'fallo' ? c.mensaje : null;
+  });
+  protected readonly espacioFallo = computed(() => {
+    const c = this.espacio();
+    return c.estado === 'fallo' ? c.mensaje : null;
+  });
 
   constructor() {
     // El índice que ya existe también cuenta algo: se dibuja de entrada.
     this.dibujarEspacio();
-    this.rag.stats().subscribe({
-      next: (s) => this.stats.set(s),
-      error: () => this.stats.set(null),
-    });
-    this.rag.esquema().subscribe({
-      next: (e) => this.esquema.set(e),
-      error: () => this.esquema.set(null),
-    });
+    pedir(this.rag.stats(), this.stats);
+    pedir(this.rag.esquema(), this.esquema);
   }
 
   /** Tamaño legible del archivo recibido. */
@@ -119,7 +132,7 @@ export class ActoIngestaComponent {
   private indexar(archivo: File): void {
     this.store.reiniciarIngesta();
     this.store.indexando.set(true);
-    this.espacio.set(null);
+    this.espacio.set(reposo());
 
     this.rag.indexarNarrado(archivo).subscribe({
       next: (evento) => {
@@ -137,13 +150,10 @@ export class ActoIngestaComponent {
   /** Pide al backend la nube ya proyectada a 2D. */
   /** Los otros índices: los que sirven a la búsqueda literal y a los filtros. */
   protected readonly otrosIndices = computed(
-    () => this.esquema()?.indices.filter((i) => i.metodo !== 'hnsw') ?? [],
+    () => this.esquemaDato()?.indices.filter((i) => i.metodo !== 'hnsw') ?? [],
   );
 
   private dibujarEspacio(): void {
-    this.rag.espacioVectorial({ muestra: 320 }).subscribe({
-      next: (e) => this.espacio.set(e),
-      error: () => this.espacio.set(null),
-    });
+    pedir(this.rag.espacioVectorial({ muestra: 320 }), this.espacio);
   }
 }

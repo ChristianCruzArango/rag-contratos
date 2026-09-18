@@ -30,3 +30,11 @@ backend/.cache/
 seed-data/*.pdf
 seed-data/*.txt
 seed-data/escaneados/
+
+# ── Material de difusión ─────────────────────────────────────────────────────
+# Se queda en local: no forma parte del proyecto.
+POST-LINKEDIN.md
+linkedin-*.png
+linkedin-*.svg
+pipeline-rag.png
+pipeline-rag.svg

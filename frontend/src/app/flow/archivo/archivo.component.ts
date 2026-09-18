@@ -70,7 +70,10 @@ export class ArchivoComponent {
   private recargar(): void {
     this.rag.documents().subscribe({
       next: (ds) => this.documentos.set(ds),
-      error: () => this.documentos.set([]),
+      error: (err: Error) => {
+        this.documentos.set([]);
+        this.aviso.set(`No se pudo leer el índice: ${err.message}`);
+      },
     });
   }
 }

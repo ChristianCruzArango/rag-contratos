@@ -1,0 +1,31 @@
+<p class="estado" [attr.data-signo]="signo()" role="status">
+  <span class="estado__signo" aria-hidden="true">
+    @switch (signo()) {
+      @case ('trabajando') {
+        <svg viewBox="0 0 16 16" class="estado__rueda">
+          <circle cx="8" cy="8" r="6" class="estado__pista" />
+          <circle cx="8" cy="8" r="6" class="estado__arco" />
+        </svg>
+      }
+      @case ('listo') {
+        <svg viewBox="0 0 16 16"><path d="M3.5 8.5 L6.5 11.5 L12.5 4.5" /></svg>
+      }
+      @case ('fallo') {
+        <svg viewBox="0 0 16 16">
+          <path d="M8 3.5 V9" />
+          <path d="M8 11.8 V12.4" />
+        </svg>
+      }
+      @default {
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" /></svg>
+      }
+    }
+  </span>
+
+  <span class="estado__texto">
+    {{ mensaje() }}
+    @if (detalle(); as d) {
+      <span class="estado__detalle dato">{{ d }}</span>
+    }
+  </span>
+</p>

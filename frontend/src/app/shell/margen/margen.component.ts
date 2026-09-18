@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { PipelineStore } from '../../core/pipeline/pipeline.store';
 import { TemaService } from '../../core/tema/tema.service';
+import { EstadoComponent } from '../../ui/estado/estado.component';
 import { PASOS } from './pasos';
 
 /**
@@ -22,6 +23,7 @@ import { PASOS } from './pasos';
  */
 @Component({
   selector: 'app-margen',
+  imports: [EstadoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './margen.component.html',
   styleUrl: './margen.component.scss',
@@ -31,7 +33,7 @@ export class MargenComponent {
   protected readonly visible = signal<string | null>(null);
 
   protected readonly tema = inject(TemaService);
-  private readonly store = inject(PipelineStore);
+  protected readonly store = inject(PipelineStore);
 
   /** Fases que el backend ya confirmó. */
   protected readonly hechos = computed(() => {

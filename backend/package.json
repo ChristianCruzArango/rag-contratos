@@ -28,7 +28,8 @@
     "db:psql": "docker exec -it rag-postgres psql -U rag -d ragdb",
     "db:reset": "docker compose -f ../docker-compose.yml down -v && docker compose -f ../docker-compose.yml up -d postgres",
     "seed:scanned": "node scripts/make-scanned.mjs --pages 8",
-    "seed:scanned:noise": "node scripts/make-scanned.mjs --pages 8 --noise"
+    "seed:scanned:noise": "node scripts/make-scanned.mjs --pages 8 --noise",
+    "db:clean": "docker exec rag-postgres psql -U rag -d ragdb -c \"TRUNCATE documents, conversations CASCADE\""
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.0",

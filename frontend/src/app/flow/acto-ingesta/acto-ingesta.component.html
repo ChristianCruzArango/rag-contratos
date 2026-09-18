@@ -130,7 +130,12 @@
       </p>
     }
   } @else {
-    <p class="espera dato apagado">Esperando un archivo…</p>
+    <app-paso-estado
+      acto="ingesta"
+      inactivo="Suelta un archivo arriba para ver sus páginas."
+      esperando="Leyendo las páginas del PDF…"
+      omitido="No se llegó a abrir el documento."
+    />
   }
 </app-paso>
 
@@ -164,12 +169,20 @@
     @if (plan.innecesario) {
       <p class="veredicto">
         <span class="veredicto__marca lit">✓</span>
-        El OCR no se ejecutó: ninguna página bajó de los
-        <b class="dato">{{ plan.minChars }}</b> caracteres mínimos. Un PDF nativo no paga este paso.
+        <span>
+          <b>No hizo falta reconocer nada.</b> Este PDF ya traía texto en todas sus páginas: ninguna
+          bajó del mínimo de <b class="dato">{{ plan.minChars }}</b> caracteres que marca el umbral,
+          así que no había nada que leer con OCR.
+        </span>
       </p>
       <p class="pie">
-        Si el contrato llegara escaneado, aquí verías las páginas en ámbar pasando una a una por el
-        motor, con su confianza medida. Hay dos en <code>seed-data/escaneados/</code> para probarlo.
+        Que no se ejecute es la señal de que el documento está bien: el OCR sólo entra donde una
+        página viene vacía porque en realidad es una foto. Un PDF exportado desde un programa nunca
+        lo necesita, y se ahorra el minuto largo que tarda.
+      </p>
+      <p class="pie">
+        Para verlo trabajar hay dos escaneos en <code>seed-data/escaneados/</code>: allí las páginas
+        salen en ámbar y pasan una a una por el motor, con su confianza medida.
       </p>
     } @else {
       <dl class="hechos">
@@ -236,7 +249,12 @@
       }
     }
   } @else {
-    <p class="espera dato apagado">Esperando a la extracción…</p>
+    <app-paso-estado
+      acto="ingesta"
+      inactivo="Suelta un archivo arriba."
+      esperando="Esperando a la extracción…"
+      omitido="El OCR no llegó a evaluarse."
+    />
   }
 </app-paso>
 
@@ -275,11 +293,19 @@
   } @else if (yaEstaba()) {
     <p class="veredicto">
       <span class="veredicto__marca lit">=</span>
-      Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno guardado,
-      así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron embeddings de nuevo.
+      <span
+        >Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno
+        guardado, así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron
+        embeddings de nuevo.</span
+      >
     </p>
   } @else {
-    <p class="espera dato apagado">Esperando al texto…</p>
+    <app-paso-estado
+      acto="ingesta"
+      inactivo="Suelta un archivo arriba."
+      esperando="Partiendo el texto en fragmentos…"
+      omitido="No se llegó a trocear el documento."
+    />
   }
 </app-paso>
 
@@ -362,11 +388,19 @@
   } @else if (yaEstaba()) {
     <p class="veredicto">
       <span class="veredicto__marca lit">=</span>
-      Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno guardado,
-      así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron embeddings de nuevo.
+      <span
+        >Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno
+        guardado, así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron
+        embeddings de nuevo.</span
+      >
     </p>
   } @else {
-    <p class="espera dato apagado">Esperando a los fragmentos…</p>
+    <app-paso-estado
+      acto="ingesta"
+      inactivo="Suelta un archivo arriba."
+      esperando="Generando los vectores…"
+      omitido="No se generaron vectores."
+    />
   }
 </app-paso>
 
@@ -404,12 +438,15 @@
   } @else if (yaEstaba()) {
     <p class="veredicto">
       <span class="veredicto__marca lit">=</span>
-      Nada nuevo que escribir: el documento ya ocupaba
-      <b class="dato">{{ store.ingestaLista()?.fragmentos }}</b> filas en <code>chunks</code>.
+      <span
+        >Nada nuevo que escribir: el documento ya ocupaba
+        <b class="dato">{{ store.ingestaLista()?.fragmentos }}</b> filas en
+        <code>chunks</code>.</span
+      >
     </p>
   }
 
-  @if (esquema(); as e) {
+  @if (esquemaDato(); as e) {
     <pre class="sql"><code>{{ e.ddl }}</code></pre>
     <p class="pie dato apagado">
       Leído del catálogo de Postgres, no escrito a mano: si alguien cambia la tabla, esto cambia con
@@ -461,7 +498,7 @@
   }
 
   <h3 class="sub">El mapa de lo que acabas de guardar</h3>
-  @if (espacio(); as e) {
+  @if (espacioDato(); as e) {
     <viz-vector-space [espacio]="e" />
     <p class="pie">
       Nadie le dijo al sistema qué es un contrato de arrendamiento: esos grupos de color aparecieron
@@ -470,12 +507,21 @@
       así que dos puntos que se tocan en el dibujo pueden no tocarse de verdad. Al revés no: lo que
       está lejos aquí, está lejos.
     </p>
+  } @else if (espacioFallo(); as fallo) {
+    <app-estado signo="fallo" mensaje="No se pudo dibujar el mapa" [detalle]="fallo" />
+  } @else if (espacio().estado === 'cargando') {
+    <app-estado signo="trabajando" mensaje="Proyectando el espacio vectorial a dos dimensiones…" />
   } @else {
-    <p class="espera dato apagado">El mapa aparece cuando termine la indexación.</p>
+    <app-paso-estado
+      acto="ingesta"
+      inactivo="El mapa aparece cuando haya fragmentos en el índice."
+      esperando="Esperando a que termine la indexación…"
+      omitido="No hay fragmentos que dibujar."
+    />
   }
 
   <h3 class="sub">
-    @if (stats(); as st) {
+    @if (statsDato(); as st) {
       Por qué no hay que mirar los {{ st.fragmentos | number }}
     } @else {
       Por qué no hay que mirarlos todos
@@ -488,5 +534,5 @@
     candidatos mirando una fracción minúscula de la tabla, a cambio de no garantizar que sean
     <i>exactamente</i> los mejores.
   </p>
-  <viz-hnsw-graph [indice]="esquema()?.hnsw ?? null" />
+  <viz-hnsw-graph [indice]="esquemaDato()?.hnsw ?? null" />
 </app-paso>

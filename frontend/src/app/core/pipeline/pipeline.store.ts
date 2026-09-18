@@ -22,6 +22,28 @@ export const PASOS_CONSULTA = [
   'respuesta-lista',
 ] as const satisfies readonly Fase[];
 
+/** Qué contarle al lector en cada fase. */
+const LEYENDA: Partial<Record<Fase, string>> = {
+  recepcion: 'Recibiendo el archivo',
+  extraccion: 'Leyendo las páginas',
+  'ocr-plan': 'Preparando el OCR',
+  'ocr-pagina': 'Reconociendo páginas',
+  'ocr-resumen': 'Cerrando el OCR',
+  troceo: 'Partiendo en fragmentos',
+  'embeddings-lote': 'Generando vectores',
+  almacenado: 'Escribiendo en pgvector',
+  'ingesta-lista': 'Documento indexado',
+  consulta: 'Preparando la consulta',
+  'consulta-embedding': 'Vectorizando la pregunta',
+  'busqueda-vectorial': 'Buscando por significado',
+  'busqueda-lexica': 'Buscando literalmente',
+  fusion: 'Fusionando las dos listas',
+  prompt: 'Armando el prompt',
+  citas: 'Reuniendo las citas',
+  token: 'Escribiendo la respuesta',
+  'respuesta-lista': 'Respuesta lista',
+};
+
 /**
  * Estado del pipeline, alimentado exclusivamente por los eventos del backend.
  *
@@ -73,6 +95,50 @@ export class PipelineStore {
   readonly pasoConsulta = computed(() => PASOS_CONSULTA.filter((p) => this.hecho(p)).length);
 
   readonly totalEmbebidos = computed(() => this.lotes().at(-1)?.hechos ?? 0);
+
+  /** ¿Hay algo en marcha ahora mismo? */
+  readonly trabajando = computed(() => this.indexando() || this.consultando());
+
+  /**
+   * En qué punto está el recorrido, para el indicador del margen.
+   * Distingue lo que la interfaz no distinguía: trabajando, terminado y roto.
+   */
+  readonly marcha = computed<'reposo' | 'trabajando' | 'listo' | 'fallo'>(() => {
+    if (this.error()) return 'fallo';
+    if (this.trabajando()) return 'trabajando';
+    // Sin citas no hubo respuesta que celebrar: se marca como reposo para que
+    // el visto verde no prometa algo que no ocurrió.
+    if (this.respuestaLista()) {
+      return this.citas()?.citas.length ? 'listo' : 'reposo';
+    }
+    if (this.ingestaLista()) return 'listo';
+    return 'reposo';
+  });
+
+  /** Qué se está haciendo, dicho en una línea. */
+  readonly loQueHace = computed(() => {
+    const fase = this.faseActual();
+    if (this.error()) return 'Algo falló';
+    if (!this.trabajando()) {
+      if (this.respuestaLista()) {
+        // Terminar y encontrar algo no es lo mismo: si la búsqueda vuelve
+        // vacía el recorrido acaba igual, pero decir «lista» sería engañoso.
+        return this.citas()?.citas.length ? 'Respuesta lista' : 'Terminó sin encontrar nada';
+      }
+      if (this.ingestaLista()) {
+        return this.ingestaLista()!.omitido ? 'Ya estaba indexado' : 'Documento indexado';
+      }
+      return 'Sin nada en marcha';
+    }
+    return fase ? (LEYENDA[fase] ?? 'Trabajando') : 'Trabajando';
+  });
+
+  /** El tiempo que tardó, cuando ya terminó. */
+  readonly cuantoTardo = computed(() => {
+    if (this.trabajando()) return null;
+    const ms = this.respuestaLista()?.ms ?? this.ingestaLista()?.ms;
+    return ms === undefined ? null : `${(ms / 1000).toFixed(1)} s`;
+  });
 
   /** ¿Este documento necesitó OCR? */
   readonly necesitoOcr = computed(() => (this.ocrPlan()?.objetivo.length ?? 0) > 0);

@@ -211,3 +211,11 @@ svg {
     }
   }
 }
+
+.mapa__vacio {
+  max-width: 48ch;
+  margin: 0;
+  padding: 2rem 0;
+  border-top: 1px dashed var(--hilo);
+  border-bottom: 1px dashed var(--hilo);
+}

@@ -21,7 +21,7 @@
     mientras trabaja.
   </p>
 
-  @if (stats(); as s) {
+  @if (statsDato(); as s) {
     <dl class="estado">
       <div>
         <dt class="rotulo">documentos</dt>
@@ -44,11 +44,14 @@
         <dd class="dato">{{ s.dimensiones }}</dd>
       </div>
     </dl>
+  } @else if (statsFallo(); as fallo) {
+    <app-estado
+      signo="fallo"
+      mensaje="Sin conexión con la API. Arranca el backend en localhost:3000."
+      [detalle]="fallo"
+    />
   } @else {
-    <p class="estado estado--vacio dato apagado">
-      Sin conexión con la API. Arranca el backend en
-      <code>localhost:3000</code> para ver el índice real.
-    </p>
+    <app-estado signo="trabajando" mensaje="Consultando el índice…" />
   }
 
   <a class="accion" href="#recepcion">

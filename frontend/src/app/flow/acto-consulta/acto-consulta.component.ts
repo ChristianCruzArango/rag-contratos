@@ -8,7 +8,11 @@ import { VectorStripComponent } from '../../viz/vector-strip/vector-strip.compon
 import { VectorSpaceComponent } from '../../viz/vector-space/vector-space.component';
 import { CosineDialComponent } from '../../viz/cosine-dial/cosine-dial.component';
 import { RrfFusionComponent } from '../../viz/rrf-fusion/rrf-fusion.component';
+import { EstadoComponent } from '../../ui/estado/estado.component';
+import { PasoEstadoComponent } from '../../ui/paso-estado/paso-estado.component';
 import type { EspacioVectorial } from '../../core/pipeline/pipeline.models';
+import { pedir } from '../../core/carga/carga';
+import { type Carga, dato, reposo } from '../../core/carga/carga.models';
 import type { Trozo } from './acto-consulta.models';
 
 /** Preguntas que se contestan bien con los contratos de prueba. */
@@ -30,6 +34,8 @@ const SUGERENCIAS = [
     VectorSpaceComponent,
     CosineDialComponent,
     RrfFusionComponent,
+    EstadoComponent,
+    PasoEstadoComponent,
   ],
   templateUrl: './acto-consulta.component.html',
   styleUrls: ['../acto.scss', './acto-consulta.component.scss'],
@@ -38,7 +44,7 @@ export class ActoConsultaComponent {
   protected readonly sugerencias = SUGERENCIAS;
   protected readonly store = inject(PipelineStore);
   protected readonly pregunta = signal('');
-  protected readonly espacio = signal<EspacioVectorial | null>(null);
+  protected readonly espacio = signal<Carga<EspacioVectorial>>(reposo());
 
   private readonly rag = inject(RagService);
 
@@ -73,6 +79,13 @@ export class ActoConsultaComponent {
 
   protected readonly citaResaltada = signal<number | null>(null);
 
+  /** Desempaquetado para las plantillas. */
+  protected readonly espacioDato = computed(() => dato(this.espacio()));
+  protected readonly espacioFallo = computed(() => {
+    const c = this.espacio();
+    return c.estado === 'fallo' ? c.mensaje : null;
+  });
+
   protected usar(sugerencia: string): void {
     this.pregunta.set(sugerencia);
     this.preguntar();
@@ -85,7 +98,7 @@ export class ActoConsultaComponent {
 
     this.store.reiniciarConsulta();
     this.store.consultando.set(true);
-    this.espacio.set(null);
+    this.espacio.set(reposo());
 
     this.rag.preguntarNarrado(q).subscribe({
       next: (evento) => {
@@ -103,9 +116,6 @@ export class ActoConsultaComponent {
   }
 
   private dibujarEspacio(q: string): void {
-    this.rag.espacioVectorial({ q, muestra: 320 }).subscribe({
-      next: (e) => this.espacio.set(e),
-      error: () => this.espacio.set(null),
-    });
+    pedir(this.rag.espacioVectorial({ q, muestra: 320 }), this.espacio);
   }
 }

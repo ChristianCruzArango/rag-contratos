@@ -80,13 +80,24 @@
   </div>
 
   @if (store.vectorial(); as v) {
-    @if (espacio(); as e) {
-      <viz-vector-space [espacio]="e" />
-      <p class="pie">
-        Las líneas salen de tu pregunta y llegan a los fragmentos que ganaron. Fíjate en que no
-        siempre van a los más cercanos del dibujo: la cercanía real se mide en las
-        {{ e.dimensiones }} dimensiones, no en la sombra.
-      </p>
+    @switch (espacio().estado) {
+      @case ('listo') {
+        <viz-vector-space [espacio]="espacioDato()" />
+        <p class="pie">
+          Las líneas salen de tu pregunta y llegan a los fragmentos que ganaron. Fíjate en que no
+          siempre van a los más cercanos del dibujo: la cercanía real se mide en las
+          {{ espacioDato()?.dimensiones }} dimensiones, no en la sombra.
+        </p>
+      }
+      @case ('cargando') {
+        <app-estado
+          signo="trabajando"
+          mensaje="Proyectando el espacio vectorial a dos dimensiones…"
+        />
+      }
+      @case ('fallo') {
+        <app-estado signo="fallo" mensaje="No se pudo dibujar el mapa" [detalle]="espacioFallo()" />
+      }
     }
 
     @if (mejorVectorial(); as mejor) {
@@ -123,7 +134,11 @@
 
     <p class="pie dato apagado">{{ v.candidatos }} candidatos evaluados · {{ v.ms }} ms</p>
   } @else {
-    <p class="espera dato apagado">Haz una pregunta para ver la búsqueda.</p>
+    <app-paso-estado
+      inactivo="Haz una pregunta para ver la búsqueda."
+      esperando="Buscando por significado…"
+      omitido="La búsqueda no llegó a correr."
+    />
   }
 </app-paso>
 
@@ -172,12 +187,18 @@
     } @else {
       <p class="veredicto">
         <span class="veredicto__marca dud">—</span>
-        Ninguna coincidencia literal. Aquí la respuesta dependerá por completo de la búsqueda por
-        significado.
+        <span
+          >Ninguna coincidencia literal. Aquí la respuesta dependerá por completo de la búsqueda por
+          significado.</span
+        >
       </p>
     }
   } @else {
-    <p class="espera dato apagado">Haz una pregunta para ver la búsqueda.</p>
+    <app-paso-estado
+      inactivo="Haz una pregunta para ver la búsqueda."
+      esperando="Buscando coincidencias literales…"
+      omitido="La búsqueda literal no llegó a correr."
+    />
   }
 </app-paso>
 
@@ -209,7 +230,11 @@
       [k]="f.k"
     />
   } @else {
-    <p class="espera dato apagado">Esperando a los dos buscadores…</p>
+    <app-paso-estado
+      inactivo="Haz una pregunta para ver la fusión."
+      esperando="Esperando a los dos buscadores…"
+      omitido="No hubo nada que fusionar."
+    />
   }
 </app-paso>
 
@@ -261,7 +286,11 @@
       </div>
     </div>
   } @else {
-    <p class="espera dato apagado">Esperando a la fusión…</p>
+    <app-paso-estado
+      inactivo="Haz una pregunta para ver el prompt."
+      esperando="Esperando a la fusión…"
+      omitido="No se armó ningún prompt: la búsqueda no encontró fragmentos que pasarle al modelo, así que no hubo nada que preguntar."
+    />
   }
 </app-paso>
 
@@ -303,7 +332,11 @@
       }
     </div>
   } @else {
-    <p class="espera dato apagado">Aquí aparecerá la respuesta.</p>
+    <app-paso-estado
+      inactivo="Aquí aparecerá la respuesta."
+      esperando="El modelo está escribiendo…"
+      omitido="El modelo no llegó a responder."
+    />
   }
 
   @if (store.respuestaLista(); as r) {

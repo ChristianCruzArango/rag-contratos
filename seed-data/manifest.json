@@ -5,16 +5,16 @@
     "doc_type": "arrendamiento",
     "partes": {
       "a": "Textiles del Pacífico Ltda.",
-      "b": "Textiles del Pacífico Ltda."
+      "b": "Constructora Meridiano S.A."
     },
     "ciudad": "Ibagué",
     "fecha": "27 de diciembre de 2025",
     "valor": "$339.110.000",
     "plazo_meses": 36,
     "paginas": 100,
-    "palabras": 59629,
-    "clausulas": 108,
-    "anexos": 13
+    "palabras": 58191,
+    "clausulas": 119,
+    "anexos": 12
   },
   {
     "file": "02-arrendamiento-local.pdf",
@@ -28,9 +28,9 @@
     "fecha": "17 de febrero de 2025",
     "valor": "$285.033.000",
     "plazo_meses": 12,
-    "paginas": 100,
-    "palabras": 59425,
-    "clausulas": 104,
+    "paginas": 101,
+    "palabras": 59020,
+    "clausulas": 116,
     "anexos": 13
   },
   {
@@ -43,12 +43,12 @@
     },
     "ciudad": "Bucaramanga",
     "fecha": "12 de junio de 2023",
-    "valor": "$386.356.000",
+    "valor": "$14.197.000 /mes",
     "plazo_meses": 48,
     "paginas": 101,
-    "palabras": 60983,
-    "clausulas": 102,
-    "anexos": 13
+    "palabras": 59580,
+    "clausulas": 117,
+    "anexos": 14
   },
   {
     "file": "04-laboral-fijo.pdf",
@@ -60,12 +60,12 @@
     },
     "ciudad": "Barranquilla",
     "fecha": "24 de octubre de 2024",
-    "valor": "$185.702.000",
+    "valor": "$14.784.000 /mes",
     "plazo_meses": 36,
-    "paginas": 101,
-    "palabras": 59736,
-    "clausulas": 108,
-    "anexos": 14
+    "paginas": 99,
+    "palabras": 58143,
+    "clausulas": 116,
+    "anexos": 12
   },
   {
     "file": "05-servicios-juridicos.pdf",
@@ -79,10 +79,10 @@
     "fecha": "27 de enero de 2023",
     "valor": "$277.347.000",
     "plazo_meses": 36,
-    "paginas": 99,
-    "palabras": 59085,
-    "clausulas": 107,
-    "anexos": 12
+    "paginas": 100,
+    "palabras": 59056,
+    "clausulas": 118,
+    "anexos": 13
   },
   {
     "file": "06-cuota-litis.pdf",
@@ -96,10 +96,10 @@
     "fecha": "1 de agosto de 2026",
     "valor": "$466.660.000",
     "plazo_meses": 36,
-    "paginas": 101,
-    "palabras": 59668,
-    "clausulas": 103,
-    "anexos": 12
+    "paginas": 99,
+    "palabras": 58255,
+    "clausulas": 108,
+    "anexos": 13
   },
   {
     "file": "07-confidencialidad-nda.pdf",
@@ -113,9 +113,9 @@
     "fecha": "5 de septiembre de 2025",
     "valor": "$184.452.000",
     "plazo_meses": 36,
-    "paginas": 100,
-    "palabras": 58515,
-    "clausulas": 107,
+    "paginas": 99,
+    "palabras": 57273,
+    "clausulas": 115,
     "anexos": 12
   },
   {
@@ -130,10 +130,10 @@
     "fecha": "14 de julio de 2023",
     "valor": "$188.006.000",
     "plazo_meses": 24,
-    "paginas": 99,
-    "palabras": 58429,
-    "clausulas": 102,
-    "anexos": 12
+    "paginas": 100,
+    "palabras": 58186,
+    "clausulas": 112,
+    "anexos": 13
   },
   {
     "file": "09-suministro-mercantil.pdf",
@@ -147,10 +147,10 @@
     "fecha": "25 de febrero de 2026",
     "valor": "$440.940.000",
     "plazo_meses": 24,
-    "paginas": 99,
-    "palabras": 58294,
-    "clausulas": 104,
-    "anexos": 13
+    "paginas": 98,
+    "palabras": 56976,
+    "clausulas": 117,
+    "anexos": 11
   },
   {
     "file": "10-mandato-representacion.pdf",
@@ -165,8 +165,8 @@
     "valor": "$308.622.000",
     "plazo_meses": 18,
     "paginas": 99,
-    "palabras": 57652,
-    "clausulas": 103,
+    "palabras": 57232,
+    "clausulas": 116,
     "anexos": 13
   }
 ]

@@ -1,0 +1,86 @@
+:host {
+  display: block;
+}
+
+.estado {
+  --tono: var(--papel-3);
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.9rem 0;
+  font-size: 0.9rem;
+  color: var(--papel-2);
+
+  &[data-signo='trabajando'] {
+    --tono: var(--semantico);
+  }
+  &[data-signo='listo'] {
+    --tono: var(--literal);
+  }
+  &[data-signo='fallo'] {
+    --tono: var(--falla);
+    color: var(--falla);
+  }
+
+  &__signo {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    align-self: center;
+
+    svg {
+      display: block;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--tono);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    circle[r='2.5'] {
+      fill: var(--tono);
+      stroke: none;
+    }
+  }
+
+  &__texto {
+    min-width: 0;
+  }
+
+  &__detalle {
+    margin-left: 0.5rem;
+    color: var(--papel-3);
+  }
+}
+
+/* La rueda: un arco que gira sobre una pista tenue. */
+.estado__rueda {
+  animation: girar 0.9s linear infinite;
+  transform-origin: center;
+}
+
+.estado__pista {
+  stroke: var(--hilo-vivo);
+}
+
+.estado__arco {
+  stroke: var(--tono);
+  stroke-dasharray: 12 26;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Sin movimiento la rueda se queda quieta, pero el color sigue diciendo que
+   algo está en marcha. */
+@media (prefers-reduced-motion: reduce) {
+  .estado__rueda {
+    animation: none;
+  }
+}

@@ -4,6 +4,13 @@
     <span class="marca__linea marca__linea--2">de un contrato</span>
   </a>
 
+  <app-estado
+    class="margen__marcha"
+    [signo]="store.marcha()"
+    [mensaje]="store.loQueHace()"
+    [detalle]="store.cuantoTardo()"
+  />
+
   <ol class="indice">
     @for (paso of pasos; track paso.id; let i = $index) {
       @if (i === 0 || pasos[i - 1].acto !== paso.acto) {

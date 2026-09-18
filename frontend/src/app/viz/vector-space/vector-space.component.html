@@ -1,130 +1,137 @@
 <figure class="mapa">
-  <p class="mapa__como">
-    Cada punto es un fragmento. <strong>Cerca = parecido de significado</strong>, y el color dice de
-    qué tipo de contrato viene.
-    @if (consulta()) {
-      El rombo blanco es tu pregunta.
-    }
-  </p>
+  @if (!puntos().length) {
+    <p class="mapa__vacio dato apagado">
+      El índice no tiene fragmentos con vector, así que no hay nube que dibujar. Indexa un documento
+      y aparece.
+    </p>
+  } @else {
+    <p class="mapa__como">
+      Cada punto es un fragmento. <strong>Cerca = parecido de significado</strong>, y el color dice
+      de qué tipo de contrato viene.
+      @if (consulta()) {
+        El rombo blanco es tu pregunta.
+      }
+    </p>
 
-  <div class="mapa__lienzo">
-    <svg viewBox="-126 -108 250 232" role="img" [attr.aria-label]="resumen()">
-      <!-- Ejes. Sin marcas numéricas: un componente principal no tiene unidad -->
-      <g class="ejes">
-        <line x1="-96" y1="0" x2="96" y2="0" />
-        <line x1="0" y1="-96" x2="0" y2="96" />
-      </g>
+    <div class="mapa__lienzo">
+      <svg viewBox="-126 -108 250 232" role="img" [attr.aria-label]="resumen()">
+        <!-- Ejes. Sin marcas numéricas: un componente principal no tiene unidad -->
+        <g class="ejes">
+          <line x1="-96" y1="0" x2="96" y2="0" />
+          <line x1="0" y1="-96" x2="0" y2="96" />
+        </g>
 
-      <!-- Vínculos consulta → fragmentos elegidos, por debajo de los puntos -->
-      @if (consulta(); as c) {
-        <g class="vinculos" #gVinculos>
-          @for (p of elegidos(); track p.id) {
-            <line
-              [attr.x1]="c.x * 92"
-              [attr.y1]="c.y * -92"
-              [attr.x2]="p.x * 92"
-              [attr.y2]="p.y * -92"
-            />
+        <!-- Vínculos consulta → fragmentos elegidos, por debajo de los puntos -->
+        @if (consulta(); as c) {
+          <g class="vinculos" #gVinculos>
+            @for (p of elegidos(); track p.id) {
+              <line
+                [attr.x1]="c.x * 92"
+                [attr.y1]="c.y * -92"
+                [attr.x2]="p.x * 92"
+                [attr.y2]="p.y * -92"
+              />
+            }
+          </g>
+        }
+
+        <g class="puntos" #gPuntos>
+          @for (p of puntos(); track p.id) {
+            <circle
+              [attr.cx]="p.x * 92"
+              [attr.cy]="p.y * -92"
+              [attr.r]="radio(p)"
+              [attr.fill]="p.fuera ? 'none' : 'var(--tipo-' + tipo(p) + ')'"
+              [attr.fill-opacity]="opacidad(p)"
+              [attr.stroke]="p.fuera ? 'var(--tipo-' + tipo(p) + ')' : null"
+              [class.fuera]="p.fuera"
+              [class.elegido]="p.elegido"
+              [class.activo]="activo()?.id === p.id"
+              (pointerenter)="activo.set(p)"
+              (pointerleave)="activo.set(null)"
+              tabindex="0"
+              (focus)="activo.set(p)"
+              (blur)="activo.set(null)"
+            >
+              <title>{{ etiquetaPunto(p) }}</title>
+            </circle>
           }
         </g>
-      }
 
-      <g class="puntos" #gPuntos>
-        @for (p of puntos(); track p.id) {
-          <circle
-            [attr.cx]="p.x * 92"
-            [attr.cy]="p.y * -92"
-            [attr.r]="radio(p)"
-            [attr.fill]="p.fuera ? 'none' : 'var(--tipo-' + tipo(p) + ')'"
-            [attr.fill-opacity]="opacidad(p)"
-            [attr.stroke]="p.fuera ? 'var(--tipo-' + tipo(p) + ')' : null"
-            [class.fuera]="p.fuera"
-            [class.elegido]="p.elegido"
-            [class.activo]="activo()?.id === p.id"
-            (pointerenter)="activo.set(p)"
-            (pointerleave)="activo.set(null)"
-            tabindex="0"
-            (focus)="activo.set(p)"
-            (blur)="activo.set(null)"
-          >
-            <title>{{ etiquetaPunto(p) }}</title>
-          </circle>
+        <!-- La pregunta: un rombo, para que no se confunda con un fragmento -->
+        @if (consulta(); as c) {
+          <g class="consulta" [attr.transform]="'translate(' + c.x * 92 + ',' + c.y * -92 + ')'">
+            <circle class="pulso" r="5" />
+            <rect class="rombo" x="-4.6" y="-4.6" width="9.2" height="9.2" transform="rotate(45)" />
+          </g>
         }
-      </g>
 
-      <!-- La pregunta: un rombo, para que no se confunda con un fragmento -->
-      @if (consulta(); as c) {
-        <g class="consulta" [attr.transform]="'translate(' + c.x * 92 + ',' + c.y * -92 + ')'">
-          <circle class="pulso" r="5" />
-          <rect class="rombo" x="-4.6" y="-4.6" width="9.2" height="9.2" transform="rotate(45)" />
-        </g>
-      }
+        <!-- Nombre de los ejes -->
+        <text class="eje-rotulo" x="0" y="114" text-anchor="middle">
+          componente 1 · {{ pct(varianza()[0]) }} de la información
+        </text>
+        <text
+          class="eje-rotulo"
+          x="0"
+          y="0"
+          text-anchor="middle"
+          transform="translate(-114,0) rotate(-90)"
+        >
+          componente 2 · {{ pct(varianza()[1]) }}
+        </text>
+      </svg>
 
-      <!-- Nombre de los ejes -->
-      <text class="eje-rotulo" x="0" y="114" text-anchor="middle">
-        componente 1 · {{ pct(varianza()[0]) }} de la información
-      </text>
-      <text
-        class="eje-rotulo"
-        x="0"
-        y="0"
-        text-anchor="middle"
-        transform="translate(-114,0) rotate(-90)"
-      >
-        componente 2 · {{ pct(varianza()[1]) }}
-      </text>
-    </svg>
-
-    <ul class="mapa__leyenda">
-      @for (t of tiposPresentes(); track t) {
-        <li>
-          <i [style.background]="'var(--tipo-' + t + ')'"></i>
-          <span class="dato">{{ t }}</span>
-        </li>
-      }
-      @if (hayOcr()) {
-        <li class="mapa__leyenda--aparte">
-          <i class="anillo"></i>
-          <span class="dato">de OCR</span>
-        </li>
-      }
-      @if (consulta()) {
-        <li class="mapa__leyenda--aparte">
-          <i class="rombo"></i>
-          <span class="dato">tu pregunta</span>
-        </li>
-      }
-    </ul>
-  </div>
-
-  <figcaption class="mapa__pie dato apagado">
-    @if (espacio(); as e) {
-      {{ e.muestra }} de {{ e.totalFragmentos | number }} fragmentos ·
-      {{ e.dimensiones }} dimensiones aplastadas a 2
-      @if (e.fueraDeCuadro > 0) {
-        · {{ e.fueraDeCuadro }} quedan fuera del encuadre, dibujados huecos contra el borde
-      }
-    }
-  </figcaption>
-
-  <aside class="mapa__detalle" [class.viva]="activo()" role="status">
-    @if (activo(); as p) {
-      <span class="rotulo">{{ p.titulo }}</span>
-      <p class="dato">
-        {{ p.seccion ?? 'preámbulo' }}
-        @if (p.pagina) {
-          · pág. {{ p.pagina }}
+      <ul class="mapa__leyenda">
+        @for (t of tiposPresentes(); track t) {
+          <li>
+            <i [style.background]="'var(--tipo-' + t + ')'"></i>
+            <span class="dato">{{ t }}</span>
+          </li>
         }
-        @if (p.ocr) {
-          · <span class="dud">OCR</span>
+        @if (hayOcr()) {
+          <li class="mapa__leyenda--aparte">
+            <i class="anillo"></i>
+            <span class="dato">de OCR</span>
+          </li>
         }
-        @if (p.similitud !== null) {
-          · coseno <span class="sem">{{ p.similitud.toFixed(3) }}</span>
+        @if (consulta()) {
+          <li class="mapa__leyenda--aparte">
+            <i class="rombo"></i>
+            <span class="dato">tu pregunta</span>
+          </li>
         }
-      </p>
-      <p class="mapa__fragmento">{{ p.excerpt }}</p>
-    } @else {
-      <span class="dato apagado">Pasa el cursor por un punto para leerlo.</span>
-    }
-  </aside>
+      </ul>
+    </div>
+
+    <figcaption class="mapa__pie dato apagado">
+      @if (espacio(); as e) {
+        {{ e.muestra }} de {{ e.totalFragmentos | number }} fragmentos ·
+        {{ e.dimensiones }} dimensiones aplastadas a 2
+        @if (e.fueraDeCuadro > 0) {
+          · {{ e.fueraDeCuadro }} quedan fuera del encuadre, dibujados huecos contra el borde
+        }
+      }
+    </figcaption>
+
+    <aside class="mapa__detalle" [class.viva]="activo()" role="status">
+      @if (activo(); as p) {
+        <span class="rotulo">{{ p.titulo }}</span>
+        <p class="dato">
+          {{ p.seccion ?? 'preámbulo' }}
+          @if (p.pagina) {
+            · pág. {{ p.pagina }}
+          }
+          @if (p.ocr) {
+            · <span class="dud">OCR</span>
+          }
+          @if (p.similitud !== null) {
+            · coseno <span class="sem">{{ p.similitud.toFixed(3) }}</span>
+          }
+        </p>
+        <p class="mapa__fragmento">{{ p.excerpt }}</p>
+      } @else {
+        <span class="dato apagado">Pasa el cursor por un punto para leerlo.</span>
+      }
+    </aside>
+  }
 </figure>
