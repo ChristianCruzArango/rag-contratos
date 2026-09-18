@@ -1,0 +1,246 @@
+/* ── Entrada de la pregunta ───────────────────────────────────────────────── */
+.pregunta {
+  display: flex;
+  gap: 0.7rem;
+  align-items: stretch;
+
+  .campo {
+    flex: 1;
+  }
+}
+
+.sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  button {
+    padding: 0.38rem 0.85rem;
+    border: 1px solid var(--hilo);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--papel-2);
+    font-size: 0.84rem;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      border-color 0.5s var(--sale),
+      color 0.5s var(--sale),
+      background 0.5s var(--sale);
+
+    &:hover:not(:disabled) {
+      border-color: color-mix(in oklab, var(--semantico) 55%, transparent);
+      background: var(--semantico-tenue);
+      color: var(--papel);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* ── Listas de resultados de cada buscador ────────────────────────────────── */
+.hits {
+  list-style: none;
+  margin: 1.6rem 0 0;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.62rem 0;
+    border-bottom: 1px solid var(--hilo);
+  }
+
+  &__rank {
+    color: var(--papel-3);
+  }
+
+  &__texto {
+    min-width: 0;
+  }
+
+  &__titulo {
+    display: block;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__fragmento {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--papel-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ── Lexemas del tsquery ──────────────────────────────────────────────────── */
+.lexemas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.25rem 0.7rem;
+    border: 1px solid color-mix(in oklab, var(--literal) 40%, transparent);
+    border-radius: 999px;
+    background: var(--literal-tenue);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--literal);
+  }
+}
+
+.tsquery {
+  margin: 0.8rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--papel-2);
+  word-break: break-word;
+}
+
+/* ── El prompt ────────────────────────────────────────────────────────────── */
+.prompt {
+  margin: 1.8rem 0 0;
+
+  &__parte {
+    border-top: 1px solid var(--hilo);
+    padding: 1.1rem 0;
+  }
+
+  pre {
+    margin: 0.7rem 0 0;
+    max-height: 22rem;
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: 0.79rem;
+    line-height: 1.8;
+    color: var(--papel-2);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+/* ── La respuesta ─────────────────────────────────────────────────────────── */
+.respuesta {
+  max-width: 64ch;
+  margin: 1.6rem 0 0;
+  font-size: 1rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+
+  &__cursor {
+    display: inline-block;
+    width: 0.55ch;
+    height: 1.05em;
+    vertical-align: text-bottom;
+    background: var(--semantico);
+    animation: parpadeo 1.05s steps(2) infinite;
+  }
+}
+
+.marcador {
+  display: inline-block;
+  padding: 0 0.3em;
+  border-radius: 4px;
+  background: var(--semantico-tenue);
+  color: var(--semantico);
+  font-family: var(--mono);
+  font-size: 0.78em;
+  cursor: pointer;
+  transition:
+    background 0.4s var(--sale),
+    color 0.4s var(--sale);
+
+  &:hover,
+  &.viva {
+    background: var(--semantico);
+    color: #fff;
+  }
+}
+
+.citas {
+  list-style: none;
+  margin: 2.4rem 0 0;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 1rem;
+    padding: 0.95rem 0;
+    border-top: 1px solid var(--hilo);
+    transition: background 0.5s var(--sale);
+
+    &.viva {
+      background: var(--semantico-tenue);
+    }
+  }
+
+  &__n {
+    color: var(--semantico);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  &__fuente {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    align-items: baseline;
+    margin-bottom: 0.35rem;
+  }
+
+  &__titulo {
+    font-size: 0.94rem;
+  }
+
+  &__texto {
+    margin: 0;
+    max-width: 66ch;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: var(--papel-2);
+  }
+}
+
+.sello-ocr {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid color-mix(in oklab, var(--duda) 50%, transparent);
+  border-radius: 4px;
+  color: var(--duda);
+}
+
+@keyframes parpadeo {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (width <= 620px) {
+  .pregunta {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,96 @@
+:host {
+  display: block;
+}
+
+.grafo {
+  margin: 0;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  max-width: 34rem;
+  height: auto;
+}
+
+.suelo {
+  stroke: rgb(var(--luz) / 7%);
+  stroke-width: 1;
+}
+
+.rotulo-capa {
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  fill: var(--papel-3);
+}
+
+.arista {
+  fill: none;
+  stroke: rgb(var(--luz) / 14%);
+  stroke-width: 0.8;
+}
+
+.nodo {
+  fill: var(--tinta-3);
+  stroke: rgb(var(--luz) / 32%);
+  stroke-width: 1;
+
+  &.en-ruta {
+    fill: color-mix(in oklab, var(--semantico) 30%, var(--tinta-0));
+    stroke: var(--semantico);
+  }
+}
+
+.descenso {
+  fill: none;
+  stroke: var(--semantico);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.grafo__pie {
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--hilo);
+
+  p {
+    max-width: 66ch;
+    margin: 0;
+    line-height: 1.7;
+
+    b {
+      color: var(--papel);
+      font-weight: 500;
+    }
+  }
+
+  code {
+    font-family: var(--mono);
+    color: var(--papel-2);
+  }
+}
+
+.grafo__params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 2.2rem;
+  margin: 1.2rem 0 0;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dd {
+    color: var(--papel);
+  }
+}

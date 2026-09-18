@@ -1,0 +1,348 @@
+<div class="acto">
+  <h2 class="acto__titulo">Acto II · Preguntarle al documento</h2>
+  <p class="acto__entrada">
+    El contrato ya está dentro, partido en fragmentos y con un vector por fragmento. Preguntar
+    empieza por hacerle a la pregunta exactamente lo mismo que se le hizo al texto: convertirla en
+    un vector, con el mismo modelo. Con ese vector se busca dos veces a la vez —por significado y
+    por palabras exactas— y las dos listas de candidatos se funden en una sola. Los primeros de esa
+    lista se copian dentro del prompt, numerados, y el modelo recibe una orden concreta: responde
+    sólo con esto, y di de dónde sacas cada cosa.
+  </p>
+</div>
+
+<!-- ═══ 07 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="pregunta" numero="07" titulo="La pregunta se vuelve vector">
+  <div entrada>
+    <p>
+      La pregunta pasa por el <strong>mismo modelo de embeddings</strong> que los fragmentos. Tiene
+      que ser el mismo: dos modelos distintos colocan las cosas en espacios distintos, y comparar
+      sus vectores sería como comparar coordenadas de dos mapas diferentes.
+    </p>
+  </div>
+
+  <form class="pregunta" (ngSubmit)="preguntar()">
+    <input
+      class="campo"
+      type="text"
+      name="pregunta"
+      [ngModel]="pregunta()"
+      (ngModelChange)="pregunta.set($event)"
+      placeholder="¿Cómo se reajusta el canon de arrendamiento?"
+      autocomplete="off"
+      [disabled]="store.consultando()"
+      aria-label="Tu pregunta sobre los contratos indexados"
+    />
+    <button
+      class="accion accion--semantica"
+      type="submit"
+      [disabled]="store.consultando() || pregunta().trim().length < 3"
+    >
+      {{ store.consultando() ? 'Buscando…' : 'Preguntar' }}
+      <span class="accion__punta" aria-hidden="true">↗</span>
+    </button>
+  </form>
+
+  <ul class="sugerencias">
+    @for (s of sugerencias; track s) {
+      <li>
+        <button type="button" (click)="usar(s)" [disabled]="store.consultando()">
+          {{ s }}
+        </button>
+      </li>
+    }
+  </ul>
+
+  @if (store.error(); as fallo) {
+    <p class="fallo" role="alert">{{ fallo }}</p>
+  }
+
+  @if (store.consultaEmbedding(); as c) {
+    <figure class="vector-vivo">
+      <viz-vector-strip [valores]="c.muestra" etiqueta="vector de la pregunta" />
+      <figcaption class="dato apagado">{{ c.modelo }} · {{ c.ms }} ms</figcaption>
+    </figure>
+  }
+</app-paso>
+
+<!-- ═══ 08 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="vectorial" numero="08" titulo="Buscar por significado">
+  <div entrada>
+    <p>
+      Postgres ordena los fragmentos por <strong>distancia coseno</strong> al vector de la pregunta,
+      usando el índice HNSW. Encuentra cosas que hablan de lo mismo aunque no compartan ninguna
+      palabra.
+    </p>
+    <p>
+      Dónde falla: es buena con paráfrasis y mala con literales. Si preguntas por el contrato
+      <code>CONFID-2024-5519</code>, el vector de ese número no significa gran cosa — para el modelo
+      es casi ruido. Por eso no se usa sola.
+    </p>
+  </div>
+
+  @if (store.vectorial(); as v) {
+    @if (espacio(); as e) {
+      <viz-vector-space [espacio]="e" />
+      <p class="pie">
+        Las líneas salen de tu pregunta y llegan a los fragmentos que ganaron. Fíjate en que no
+        siempre van a los más cercanos del dibujo: la cercanía real se mide en las
+        {{ e.dimensiones }} dimensiones, no en la sombra.
+      </p>
+    }
+
+    @if (mejorVectorial(); as mejor) {
+      <h3 class="sub">El más cercano</h3>
+      <viz-cosine-dial [similitud]="mejor.valor" />
+      <p class="pie">
+        Ángulo entre la pregunta y «{{ mejor.seccion ?? mejor.title }}». Lo que importa es la
+        dirección, no la longitud: por eso un fragmento corto y uno largo se pueden comparar de
+        igual a igual.
+      </p>
+    }
+
+    <h3 class="sub">Los candidatos, por coseno</h3>
+    <ol class="hits">
+      @for (h of v.hits; track h.chunk_id) {
+        <li>
+          <span class="hits__rank dato">{{ h.rank }}</span>
+          <span class="hits__texto">
+            <span class="hits__titulo">
+              {{ h.seccion ?? h.title }}
+              @if (h.pagina) {
+                <span class="dato apagado">· pág. {{ h.pagina }}</span>
+              }
+              @if (h.ocr) {
+                <span class="sello-ocr">OCR</span>
+              }
+            </span>
+            <span class="hits__fragmento">{{ h.excerpt }}</span>
+          </span>
+          <span class="dato sem">{{ h.valor.toFixed(3) }}</span>
+        </li>
+      }
+    </ol>
+
+    <p class="pie dato apagado">{{ v.candidatos }} candidatos evaluados · {{ v.ms }} ms</p>
+  } @else {
+    <p class="espera dato apagado">Haz una pregunta para ver la búsqueda.</p>
+  }
+</app-paso>
+
+<!-- ═══ 09 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="lexica" numero="09" titulo="Buscar al pie de la letra">
+  <div entrada>
+    <p>
+      En paralelo corre una búsqueda de texto completo en español. Postgres
+      <strong>lematiza</strong> la pregunta y le quita las tildes: «reajustará» y «reajuste» acaban
+      en el mismo lexema, y «divulgacion» encuentra «divulgación».
+    </p>
+  </div>
+
+  @if (store.lexica(); as l) {
+    <h3 class="sub">Cómo ve Postgres tu pregunta</h3>
+    <ul class="lexemas">
+      @for (lex of l.lexemas; track lex) {
+        <li>{{ lex }}</li>
+      }
+    </ul>
+    <p class="tsquery apagado">{{ l.tsquery }}</p>
+
+    @if (l.hits.length) {
+      <h3 class="sub">Los candidatos, por coincidencia</h3>
+      <ol class="hits">
+        @for (h of l.hits; track h.chunk_id) {
+          <li>
+            <span class="hits__rank dato">{{ h.rank }}</span>
+            <span class="hits__texto">
+              <span class="hits__titulo">
+                {{ h.seccion ?? h.title }}
+                @if (h.pagina) {
+                  <span class="dato apagado">· pág. {{ h.pagina }}</span>
+                }
+                @if (h.ocr) {
+                  <span class="sello-ocr">OCR</span>
+                }
+              </span>
+              <span class="hits__fragmento">{{ h.excerpt }}</span>
+            </span>
+            <span class="dato lit">{{ h.valor.toFixed(4) }}</span>
+          </li>
+        }
+      </ol>
+      <p class="pie dato apagado">{{ l.candidatos }} candidatos · {{ l.ms }} ms</p>
+    } @else {
+      <p class="veredicto">
+        <span class="veredicto__marca dud">—</span>
+        Ninguna coincidencia literal. Aquí la respuesta dependerá por completo de la búsqueda por
+        significado.
+      </p>
+    }
+  } @else {
+    <p class="espera dato apagado">Haz una pregunta para ver la búsqueda.</p>
+  }
+</app-paso>
+
+<!-- ═══ 10 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="fusion" numero="10" titulo="Juntar las dos listas">
+  <div entrada>
+    <p>
+      Los dos buscadores devuelven puntuaciones que no se pueden sumar: una es un coseno, la otra un
+      <code>ts_rank_cd</code>. <strong>Reciprocal Rank Fusion</strong> resuelve el problema
+      ignorando las puntuaciones y mirando sólo los <strong>puestos</strong>.
+    </p>
+    <p>
+      Cada lista aporta <code>1 / (k + puesto)</code>. Lo que sale bien colocado en las dos suma dos
+      veces y se va arriba.
+    </p>
+    <p>
+      La constante <code>k = 60</code> amortigua el primer puesto. Sin ella, ser el número 1 en una
+      lista valdría el doble que ser el número 2, y una lista mediocre podría imponer su favorito.
+      Con 60, la diferencia entre el puesto 1 y el 2 es pequeña y lo que de verdad pesa es
+      <strong>aparecer en las dos</strong>.
+    </p>
+  </div>
+
+  @if (store.fusion(); as f) {
+    <viz-rrf-fusion
+      [vectorial]="store.vectorial()?.hits ?? []"
+      [lexica]="store.lexica()?.hits ?? []"
+      [filas]="f.filas"
+      [k]="f.k"
+    />
+  } @else {
+    <p class="espera dato apagado">Esperando a los dos buscadores…</p>
+  }
+</app-paso>
+
+<!-- ═══ 11 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="prompt" numero="11" titulo="Armar el prompt">
+  <div entrada>
+    <p>
+      El modelo no ve la base de datos. Ve un texto: las reglas, y debajo los fragmentos ganadores
+      numerados <code>[1] [2] [3]</code> con su documento, su cláusula y su página. Nada más.
+    </p>
+    <p>
+      Todo lo que responda tiene que salir de ahí. Ese es el trato, y está escrito en la primera
+      línea.
+    </p>
+    <p>
+      Los fragmentos que vienen de un escaneo llegan marcados con
+      <code>[texto obtenido por OCR]</code>, y el modelo tiene instrucción expresa de advertirlo
+      cuando apoye en uno de ellos una cifra o un nombre, y de <strong>no corregir nunca</strong> un
+      dato que se lea raro. Si «arreglara» un número mal leído, estaría inventando.
+    </p>
+  </div>
+
+  @if (store.prompt(); as p) {
+    <div class="cifras">
+      <app-cifra [valor]="p.fragmentos" rotulo="fragmentos de contexto" />
+      <app-cifra [valor]="p.contextoChars" rotulo="caracteres de contexto" />
+      <app-cifra [valor]="p.tokensAprox" rotulo="tokens aprox." style="--tono: var(--semantico)" />
+    </div>
+
+    <dl class="hechos">
+      <div>
+        <dt class="rotulo">modelo</dt>
+        <dd class="dato">{{ p.modelo }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">temperatura</dt>
+        <dd class="dato">0.2</dd>
+      </div>
+    </dl>
+
+    <div class="prompt">
+      <div class="prompt__parte">
+        <span class="rotulo">las reglas · system</span>
+        <pre>{{ p.sistema }}</pre>
+      </div>
+      <div class="prompt__parte">
+        <span class="rotulo">el contexto · user</span>
+        <pre>{{ p.contexto }}</pre>
+      </div>
+    </div>
+  } @else {
+    <p class="espera dato apagado">Esperando a la fusión…</p>
+  }
+</app-paso>
+
+<!-- ═══ 12 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="respuesta" numero="12" titulo="OpenRouter responde">
+  <div entrada>
+    <p>
+      El prompt viaja a OpenRouter y la respuesta vuelve token a token. Cada afirmación lleva pegado
+      el marcador del fragmento que la sostiene: pasa el cursor por un <code>[n]</code> y se
+      enciende su fuente.
+    </p>
+  </div>
+
+  @if (store.error(); as fallo) {
+    <p class="fallo" role="alert">El modelo no respondió: {{ fallo }}</p>
+    <p class="pie">
+      La recuperación funcionó —los fragmentos de abajo son reales— pero la llamada de generación
+      falló. Suele ser <code>OPENROUTER_API_KEY</code> en el <code>.env</code>.
+    </p>
+  }
+
+  @if (store.respuesta() || store.consultando()) {
+    <div class="respuesta">
+      @for (t of trozos(); track $index) {
+        @if (t.cita !== null) {
+          <span
+            class="marcador"
+            [class.viva]="citaResaltada() === t.cita"
+            (pointerenter)="citaResaltada.set(t.cita)"
+            (pointerleave)="citaResaltada.set(null)"
+            >{{ t.texto }}</span
+          >
+        } @else {
+          <span>{{ t.texto }}</span>
+        }
+      }
+      @if (store.consultando()) {
+        <span class="respuesta__cursor" aria-hidden="true"></span>
+      }
+    </div>
+  } @else {
+    <p class="espera dato apagado">Aquí aparecerá la respuesta.</p>
+  }
+
+  @if (store.respuestaLista(); as r) {
+    <div class="cifras">
+      <app-cifra [valor]="r.caracteres" rotulo="caracteres generados" />
+      <app-cifra [valor]="r.ms" sufijo="ms" rotulo="de pregunta a respuesta" />
+    </div>
+  }
+
+  @if (store.citas(); as c) {
+    @if (c.citas.length) {
+      <h3 class="sub">De dónde sale cada cosa</h3>
+      <ol class="citas">
+        @for (cita of c.citas; track cita.n) {
+          <li
+            [class.viva]="citaResaltada() === cita.n"
+            (pointerenter)="citaResaltada.set(cita.n)"
+            (pointerleave)="citaResaltada.set(null)"
+          >
+            <span class="citas__n">[{{ cita.n }}]</span>
+            <div>
+              <div class="citas__fuente">
+                <span class="citas__titulo">{{ cita.title }}</span>
+                @if (cita.seccion) {
+                  <span class="dato apagado">{{ cita.seccion }}</span>
+                }
+                @if (cita.pagina) {
+                  <span class="dato apagado">pág. {{ cita.pagina }}</span>
+                }
+                <span class="dato sem">{{ cita.score.toFixed(4) }}</span>
+                @if (cita.ocr) {
+                  <span class="sello-ocr">OCR</span>
+                }
+              </div>
+              <p class="citas__texto">{{ cita.excerpt }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  }
+</app-paso>

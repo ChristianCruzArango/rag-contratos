@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img"
+     aria-label="RAG — un embedding como barras con signo sobre la línea del cero">
+  <!-- Fondo propio: así el icono se ve igual sobre una barra clara u oscura. -->
+  <rect width="32" height="32" rx="7" fill="#14141c"/>
+
+  <!-- La línea del cero: sin ella las barras no significarían nada. -->
+  <rect x="5" y="15.6" width="22" height="1.3" rx="0.65" fill="#ffffff" fill-opacity="0.42"/>
+
+  <!-- Cuatro dimensiones de un vector: arriba las positivas, abajo las negativas. -->
+  <g fill="#a78bfa">
+    <rect x="6.5"  y="7"    width="3.5" height="9"    rx="1"/>
+    <rect x="12"   y="16.5" width="3.5" height="5.5"  rx="1"/>
+    <rect x="17.5" y="4.5"  width="3.5" height="11.5" rx="1"/>
+    <rect x="23"   y="16.5" width="3.5" height="4"    rx="1"/>
+  </g>
+</svg>

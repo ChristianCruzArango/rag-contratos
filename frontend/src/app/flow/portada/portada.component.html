@@ -1,0 +1,58 @@
+<header class="portada" id="portada" data-paso="portada">
+  <span class="rotulo portada__eyebrow"> Angular · NestJS · pgvector · OpenRouter </span>
+
+  <h1>
+    RAG es buscar<br />
+    <span class="portada__giro">antes de responder.</span>
+  </h1>
+
+  <p class="portada__entrada">
+    Un modelo de lenguaje no sabe nada de tus contratos. No estaban en su entrenamiento, así que si
+    le preguntas por uno te contestará algo verosímil y falso. <strong>RAG</strong> —<em
+      >retrieval-augmented generation</em
+    >— le da la vuelta al orden: primero se busca en tus documentos, y al modelo sólo se le entrega
+    lo que se encontró, con la instrucción de no salirse de ahí y de citar de dónde sale cada dato.
+  </p>
+
+  <p class="portada__entrada">
+    La parte difícil es la primera. Para poder buscar dentro de un PDF hay que convertirlo antes en
+    algo buscable, y eso son seis pasos. Los otros seis son los de la pregunta. Esta página los
+    ejecuta los doce sobre el contrato que subas, y cada cifra que verás la mide el servidor
+    mientras trabaja.
+  </p>
+
+  @if (stats(); as s) {
+    <dl class="estado">
+      <div>
+        <dt class="rotulo">documentos</dt>
+        <dd class="dato">{{ s.documentos }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">fragmentos</dt>
+        <dd class="dato">{{ s.fragmentos | number }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">con vector</dt>
+        <dd class="dato sem">{{ s.fragmentosConEmbedding | number }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">de OCR</dt>
+        <dd class="dato dud">{{ s.fragmentosOcr | number }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">dimensiones</dt>
+        <dd class="dato">{{ s.dimensiones }}</dd>
+      </div>
+    </dl>
+  } @else {
+    <p class="estado estado--vacio dato apagado">
+      Sin conexión con la API. Arranca el backend en
+      <code>localhost:3000</code> para ver el índice real.
+    </p>
+  }
+
+  <a class="accion" href="#recepcion">
+    Empezar por el principio
+    <span class="accion__punta" aria-hidden="true">↓</span>
+  </a>
+</header>

@@ -1,0 +1,441 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   El recorrido de un contrato
+   ---------------------------------------------------------------------------
+   Mundo: tinta sobre negro. Un documento jurídico leído por una máquina.
+   La estructura visual copia la del propio contrato: un margen numerado a la
+   izquierda, hilos finos separando actos, y ningún recuadro. Nada flota dentro
+   de una caja; todo vive sobre el mismo papel oscuro.
+
+   Los tres colores de señal no son decoración: cada uno significa una cosa y
+   sólo esa, en todo el recorrido.
+     semántico → lo que el vector entiende  (embeddings, coseno, HNSW)
+     literal   → lo que el texto dice       (tsvector, coincidencia exacta)
+     duda      → lo que no se sabe leer     (página en blanco, OCR, baja confianza)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+
+  /* Tinta. Ni negro puro ni gris plano: un azul muy oscuro con suficiente
+     luz para que el texto claro se apoye en algo en vez de flotar. */
+  --tinta-0: #14141c;
+  --tinta-1: #1c1c26;
+  --tinta-2: #24242f;
+  --tinta-3: #2d2d3a;
+
+  /* El color de lo que se sobreimprime (hilos, velos, realces). Se invierte
+     con el tema, y por eso todo lo demás se escribe como rgb(var(--luz) / n). */
+  --luz: 255 255 255;
+  --hundido: rgb(0 0 0 / 28%);
+
+  --hilo: rgb(var(--luz) / 10%);
+  --hilo-vivo: rgb(var(--luz) / 20%);
+
+  /* Papel (texto). Los tres pasan AA sobre --tinta-0:
+     papel 16,5:1 · papel-2 9:1 · papel-3 5,5:1. Nada por debajo. */
+  --papel: #f4f4fa;
+  --papel-2: #b4b4c8;
+  --papel-3: #8a8a9f;
+
+  /* Señales. Cada color significa una cosa y sólo esa. */
+  --semantico: #a78bfa;
+  --semantico-tenue: rgb(167 139 250 / 15%);
+  --literal: #5fe3ab;
+  --literal-tenue: rgb(95 227 171 / 15%);
+  --duda: #ffb43d;
+  --duda-tenue: rgb(255 180 61 / 15%);
+  --falla: #ff7b7b;
+
+  /* Las dos direcciones de un embedding: positiva y negativa. */
+  --celda-mas: #a78bfa;
+  --celda-menos: #4a5ad6;
+
+  /* Tipos de contrato en el mapa vectorial. Es una escala categórica: los
+     tonos sólo tienen que distinguirse entre sí, no ordenarse. */
+  --tipo-arrendamiento: #9b7bff;
+  --tipo-laboral: #46c2d6;
+  --tipo-juridico: #e56aa8;
+  --tipo-confidencialidad: #e3a33c;
+  --tipo-comercial: #56b881;
+  --tipo-servicios: #6e8ae8;
+  --tipo-otros: #9a9ab0;
+
+  /* Atmósfera */
+  --orbe-1: rgb(167 139 250 / 22%);
+  --orbe-2: rgb(95 227 171 / 14%);
+  --grano: 0.04;
+  --lavado: rgb(var(--luz) / 4%);
+
+  /* Tipografía */
+  --display: 'Archivo', 'Archivo Expanded', ui-sans-serif, system-ui, sans-serif;
+  --texto: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Ritmo: el margen es la columna vertebral del recorrido */
+  --margen: 10.5rem;
+  --acto: clamp(4.5rem, 9vh, 8rem);
+
+  /* Curvas. Ninguna transición usa linear ni ease-in-out. */
+  --sale: cubic-bezier(0.32, 0.72, 0, 1);
+  --entra: cubic-bezier(0.16, 1, 0.3, 1);
+  --resorte: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Tema claro ────────────────────────────────────────────────────────────
+   No es el oscuro invertido: el papel es cálido (no blanco de pantalla) y las
+   tres señales se oscurecen para seguir cumpliendo contraste sobre él.       */
+:root[data-tema='claro'] {
+  color-scheme: light;
+
+  --tinta-0: #f8f7f4;
+  --tinta-1: #f1efeb;
+  --tinta-2: #e9e7e1;
+  --tinta-3: #dfdcd5;
+
+  --luz: 24 24 34;
+  --hundido: rgb(var(--luz) / 5%);
+
+  --hilo: rgb(var(--luz) / 12%);
+  --hilo-vivo: rgb(var(--luz) / 24%);
+
+  /* papel 15,8:1 · papel-2 7,9:1 · papel-3 4,6:1 sobre --tinta-0 */
+  --papel: #16161f;
+  --papel-2: #4e4e5e;
+  --papel-3: #70707f;
+
+  --semantico: #5b3fd6;
+  --semantico-tenue: rgb(91 63 214 / 11%);
+  --literal: #0a7d4e;
+  --literal-tenue: rgb(10 125 78 / 12%);
+  --duda: #8f5a00;
+  --duda-tenue: rgb(143 90 0 / 12%);
+  --falla: #c62828;
+
+  --celda-mas: #6d4bf0;
+  --celda-menos: #1f3aa8;
+
+  --tipo-arrendamiento: #6b45d6;
+  --tipo-laboral: #12798c;
+  --tipo-juridico: #b23472;
+  --tipo-confidencialidad: #9a6708;
+  --tipo-comercial: #1f7d4f;
+  --tipo-servicios: #3d5cc0;
+  --tipo-otros: #6e6e80;
+
+  --orbe-1: rgb(91 63 214 / 9%);
+  --orbe-2: rgb(10 125 78 / 7%);
+  --grano: 0.022;
+  --lavado: rgb(var(--luz) / 2.5%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(120% 80% at 12% 0%, var(--lavado) 0%, transparent 58%), var(--tinta-0);
+  background-attachment: fixed;
+  color: var(--papel);
+  font-family: var(--texto);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* ── Voces tipográficas ────────────────────────────────────────────────────
+   Dos voces alternan a lo largo de la página: la editorial (Archivo, ancha,
+   habla del documento) y la de la máquina (Geist Mono, habla de lo medido).  */
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-variation-settings: 'wdth' 112;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  margin: 0;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 5.2vw, 4.6rem);
+  font-weight: 700;
+}
+h2 {
+  font-size: clamp(1.75rem, 3vw, 2.7rem);
+}
+h3 {
+  font-family: var(--texto);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+p {
+  margin: 0 0 1.1rem;
+  max-width: 62ch;
+}
+
+a {
+  color: inherit;
+}
+
+/* La voz de la máquina: todo dato medido va en mono. */
+.dato {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+
+.rotulo {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 450;
+  /* Menos prieto que antes: por encima de 0.2em, en versalitas y a este
+     tamaño, las palabras dejan de leerse como palabras. */
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--papel-3);
+}
+
+.tenue {
+  color: var(--papel-2);
+}
+.apagado {
+  color: var(--papel-3);
+}
+
+.sem {
+  color: var(--semantico);
+}
+.lit {
+  color: var(--literal);
+}
+.dud {
+  color: var(--duda);
+}
+
+/* ── Atmósfera: el papel oscuro tiene grano y dos luces lejanas ───────────── */
+
+.atmosfera {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.atmosfera::before,
+.atmosfera::after {
+  content: '';
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.85;
+}
+
+.atmosfera::before {
+  top: -26vmax;
+  left: -14vmax;
+  background: radial-gradient(circle, rgb(139 108 255 / 17%) 0%, transparent 62%);
+}
+
+.atmosfera::after {
+  bottom: -30vmax;
+  right: -18vmax;
+  background: radial-gradient(circle, rgb(74 222 158 / 10%) 0%, transparent 62%);
+}
+
+/* Grano fijo, nunca sobre contenido que hace scroll. */
+.grano {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: var(--grano);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Controles ─────────────────────────────────────────────────────────────
+   Botones píldora con el icono anidado en su propio círculo, nunca desnudo.  */
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.accion {
+  --tono: var(--papel);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.6rem 0.6rem 1.35rem;
+  border: 1px solid var(--hilo-vivo);
+  border-radius: 999px;
+  background: rgb(var(--luz) / 4%);
+  color: var(--papel);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background 0.5s var(--sale),
+    border-color 0.5s var(--sale),
+    transform 0.4s var(--sale),
+    opacity 0.3s var(--sale);
+
+  &__punta {
+    display: grid;
+    place-items: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    background: rgb(var(--luz) / 7%);
+    color: var(--tono);
+    transition:
+      transform 0.55s var(--resorte),
+      background 0.5s var(--sale);
+  }
+
+  &:hover:not(:disabled) {
+    background: rgb(var(--luz) / 7%);
+    border-color: rgb(var(--luz) / 22%);
+
+    .accion__punta {
+      background: color-mix(in oklab, var(--tono) 22%, transparent);
+      transform: translate(2px, -1px) scale(1.06);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.975);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &--semantica {
+    --tono: var(--semantico);
+  }
+  &--literal {
+    --tono: var(--literal);
+  }
+}
+
+.campo {
+  width: 100%;
+  padding: 0.9rem 1.15rem;
+  border: 1px solid var(--hilo);
+  border-radius: 14px;
+  background: rgb(var(--luz) / 3%);
+  color: var(--papel);
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color 0.5s var(--sale),
+    background 0.5s var(--sale);
+
+  &::placeholder {
+    color: var(--papel-3);
+  }
+
+  &:focus-visible {
+    border-color: color-mix(in oklab, var(--semantico) 55%, transparent);
+    background: rgb(var(--luz) / 5%);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--semantico) 70%, transparent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--semantico) 40%, transparent);
+  color: #fff;
+}
+
+/* Scrollbar discreta, del color del papel */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--luz) / 9%);
+  border-radius: 999px;
+  border: 3px solid var(--tinta-0);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--luz) / 16%);
+}
+
+/* ── Revelado al entrar en pantalla ────────────────────────────────────────
+   Nada aparece de golpe: sube pesado y se enfoca.                            */
+
+/* Sólo se esconde si el JS de movimiento arrancó: si algo falla, el contenido
+   se ve igual. Un texto invisible por una animación rota es peor que un texto
+   que aparece sin gracia. */
+.con-movimiento [data-revelar] {
+  opacity: 0;
+  transform: translateY(2.2rem);
+  filter: blur(7px);
+  transition:
+    opacity 0.9s var(--entra),
+    transform 0.9s var(--entra),
+    filter 0.9s var(--entra);
+}
+
+.con-movimiento [data-revelar].visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .con-movimiento [data-revelar] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}

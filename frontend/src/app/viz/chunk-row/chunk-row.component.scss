@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+.fila__columnas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fila__columna {
+  display: grid;
+  grid-template-columns: 9rem 7rem minmax(0, 1fr) auto;
+  gap: 0.6rem 1.1rem;
+  align-items: baseline;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--hilo);
+
+  /* Lo que no escribe el backend se atenúa: es la diferencia que importa. */
+  &--generada {
+    .fila__nombre,
+    .fila__valor {
+      color: var(--papel-3);
+    }
+  }
+}
+
+.fila__nombre {
+  color: var(--papel);
+  font-weight: 500;
+}
+
+.fila__valor {
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--papel-2);
+  word-break: break-word;
+
+  &--vector {
+    --alto: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.fila__marca {
+  padding: 0.12rem 0.55rem;
+  border: 1px solid var(--hilo-vivo);
+  border-radius: 999px;
+  color: var(--papel-3);
+  white-space: nowrap;
+}
+
+@media (width <= 820px) {
+  .fila__columna {
+    grid-template-columns: 1fr auto;
+
+    .fila__tipo {
+      grid-row: 1;
+      grid-column: 2;
+    }
+
+    .fila__valor {
+      grid-column: 1 / -1;
+    }
+
+    .fila__marca {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+}

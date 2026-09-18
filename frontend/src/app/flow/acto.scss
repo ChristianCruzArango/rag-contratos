@@ -1,0 +1,285 @@
+:host {
+  display: block;
+}
+
+/* ── Cabecera de acto ─────────────────────────────────────────────────────── */
+.acto {
+  padding: var(--acto) 0 2rem;
+
+  &__titulo {
+    font-variation-settings: 'wdth' 100;
+    margin-bottom: 1.4rem;
+  }
+
+  &__entrada {
+    max-width: 58ch;
+    color: var(--papel-2);
+    font-size: 1.02rem;
+    line-height: 1.75;
+  }
+}
+
+.sub {
+  margin: 3.4rem 0 1.2rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--papel-3);
+}
+
+.pie {
+  margin-top: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--papel-2);
+}
+
+.espera {
+  padding: 2.2rem 0;
+  border-top: 1px dashed var(--hilo);
+}
+
+.fallo {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--falla);
+  color: var(--falla);
+  font-size: 0.88rem;
+}
+
+/* ── Zona de entrada del archivo ──────────────────────────────────────────── */
+.zona {
+  position: relative;
+  border: 1px dashed var(--hilo-vivo);
+  border-radius: 20px;
+  background: rgb(var(--luz) / 2%);
+  transition:
+    border-color 0.6s var(--sale),
+    background 0.6s var(--sale),
+    transform 0.6s var(--sale);
+
+  &__input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &__etiqueta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: clamp(2.4rem, 7vw, 4.2rem) 1.5rem;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  &__titulo {
+    font-family: var(--display);
+    font-variation-settings: 'wdth' 90;
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .accion {
+    margin-top: 0.9rem;
+    pointer-events: none;
+  }
+
+  &--activa {
+    border-color: color-mix(in oklab, var(--semantico) 70%, transparent);
+    background: var(--semantico-tenue);
+    transform: scale(1.008);
+  }
+
+  &--ocupada {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--semantico) 45%, transparent);
+  }
+
+  &__trabajando {
+    position: absolute;
+    inset: auto auto 0.9rem 50%;
+    transform: translateX(-50%);
+    animation: respirar 1.9s var(--sale) infinite;
+  }
+}
+
+/* ── Datos ────────────────────────────────────────────────────────────────── */
+.hechos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.4rem;
+  margin: 1.6rem 0 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--hilo);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  dt {
+    margin: 0;
+  }
+  dd {
+    margin: 0;
+    font-size: 0.94rem;
+    word-break: break-word;
+  }
+}
+
+.cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem 3rem;
+  margin: 2rem 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--hilo);
+  border-bottom: 1px solid var(--hilo);
+}
+
+.veredicto {
+  display: flex;
+  gap: 0.8rem;
+  align-items: baseline;
+  max-width: 60ch;
+  padding: 1.3rem 0;
+  border-bottom: 1px solid var(--hilo);
+  font-size: 0.95rem;
+
+  &__marca {
+    font-size: 1.1rem;
+  }
+
+  b {
+    font-weight: 400;
+    color: var(--papel);
+  }
+}
+
+/* ── OCR en vivo ──────────────────────────────────────────────────────────── */
+.ocr-vivo {
+  margin: 1.8rem 0;
+
+  &__barra {
+    height: 3px;
+    border-radius: 999px;
+    background: rgb(var(--luz) / 7%);
+    overflow: hidden;
+
+    span {
+      display: block;
+      height: 100%;
+      background: var(--duda);
+      transition: width 0.7s var(--sale);
+    }
+  }
+
+  p {
+    margin: 0.6rem 0 0;
+  }
+}
+
+.lectura {
+  margin: 0 0 1.8rem;
+  padding: 1.1rem 1.3rem;
+  border-left: 2px solid var(--duda);
+  background: var(--duda-tenue);
+  border-radius: 0 10px 10px 0;
+
+  &__texto {
+    margin: 0.6rem 0 0;
+    max-width: 68ch;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--papel-2);
+  }
+}
+
+/* ── Vectores ─────────────────────────────────────────────────────────────── */
+.vector-vivo {
+  /* Aire arriba: el bloque anterior puede ser un texto o una fila de botones,
+     y sin separación la tira se lee como si colgara de ellos. */
+  margin: 2.6rem 0 2rem;
+  --alto: clamp(2.8rem, 7vw, 4.4rem);
+
+  figcaption {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--hilo);
+  }
+}
+
+.progreso {
+  margin-bottom: 1.4rem;
+
+  &__barra {
+    height: 3px;
+    border-radius: 999px;
+    background: rgb(var(--luz) / 7%);
+    overflow: hidden;
+
+    span {
+      display: block;
+      height: 100%;
+      background: currentColor;
+      transition: width 0.7s var(--sale);
+    }
+  }
+
+  p {
+    margin: 0.6rem 0 0;
+  }
+}
+
+/* ── Código ───────────────────────────────────────────────────────────────── */
+.sql {
+  margin: 1.8rem 0 0;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--hilo);
+  border-radius: 12px;
+  background: var(--hundido);
+  overflow-x: auto;
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.79rem;
+    line-height: 1.8;
+    color: var(--papel-2);
+    white-space: pre;
+  }
+}
+
+@keyframes respirar {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Los índices que Postgres reporta para la tabla. */
+.indices {
+  list-style: none;
+  margin: 1.2rem 0 0;
+  padding: 0;
+
+  li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--hilo);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.79rem;
+    line-height: 1.7;
+    color: var(--papel-2);
+    word-break: break-word;
+  }
+}

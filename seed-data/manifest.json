@@ -1,0 +1,172 @@
+[
+  {
+    "file": "01-arrendamiento-vivienda.pdf",
+    "title": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA No. ARREND-2026-5791",
+    "doc_type": "arrendamiento",
+    "partes": {
+      "a": "Textiles del Pacífico Ltda.",
+      "b": "Textiles del Pacífico Ltda."
+    },
+    "ciudad": "Ibagué",
+    "fecha": "27 de diciembre de 2025",
+    "valor": "$339.110.000",
+    "plazo_meses": 36,
+    "paginas": 100,
+    "palabras": 59629,
+    "clausulas": 108,
+    "anexos": 13
+  },
+  {
+    "file": "02-arrendamiento-local.pdf",
+    "title": "CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL No. ARREND-2025-6300",
+    "doc_type": "arrendamiento",
+    "partes": {
+      "a": "Inversiones Andinas del Norte S.A.S.",
+      "b": "Tecnologías Vertex Colombia S.A.S."
+    },
+    "ciudad": "Bogotá D.C.",
+    "fecha": "17 de febrero de 2025",
+    "valor": "$285.033.000",
+    "plazo_meses": 12,
+    "paginas": 100,
+    "palabras": 59425,
+    "clausulas": 104,
+    "anexos": 13
+  },
+  {
+    "file": "03-laboral-indefinido.pdf",
+    "title": "CONTRATO INDIVIDUAL DE TRABAJO A TÉRMINO INDEFINIDO No. LABORA-2023-2618",
+    "doc_type": "laboral",
+    "partes": {
+      "a": "Logística Integral Cumbre S.A.S.",
+      "b": "Óscar Eduardo Naranjo Vélez"
+    },
+    "ciudad": "Bucaramanga",
+    "fecha": "12 de junio de 2023",
+    "valor": "$386.356.000",
+    "plazo_meses": 48,
+    "paginas": 101,
+    "palabras": 60983,
+    "clausulas": 102,
+    "anexos": 13
+  },
+  {
+    "file": "04-laboral-fijo.pdf",
+    "title": "CONTRATO INDIVIDUAL DE TRABAJO A TÉRMINO FIJO INFERIOR A UN AÑO No. LABORA-2023-8729",
+    "doc_type": "laboral",
+    "partes": {
+      "a": "Tecnologías Vertex Colombia S.A.S.",
+      "b": "Laura Restrepo Ocampo"
+    },
+    "ciudad": "Barranquilla",
+    "fecha": "24 de octubre de 2024",
+    "valor": "$185.702.000",
+    "plazo_meses": 36,
+    "paginas": 101,
+    "palabras": 59736,
+    "clausulas": 108,
+    "anexos": 14
+  },
+  {
+    "file": "05-servicios-juridicos.pdf",
+    "title": "CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES JURÍDICOS No. SERVIC-2024-1617",
+    "doc_type": "juridico",
+    "partes": {
+      "a": "Agroindustrias La Esperanza S.A.S.",
+      "b": "Logística Integral Cumbre S.A.S."
+    },
+    "ciudad": "Ibagué",
+    "fecha": "27 de enero de 2023",
+    "valor": "$277.347.000",
+    "plazo_meses": 36,
+    "paginas": 99,
+    "palabras": 59085,
+    "clausulas": 107,
+    "anexos": 12
+  },
+  {
+    "file": "06-cuota-litis.pdf",
+    "title": "CONTRATO DE HONORARIOS PROFESIONALES BAJO MODALIDAD DE CUOTA LITIS No. CUOTA--2023-3783",
+    "doc_type": "juridico",
+    "partes": {
+      "a": "Constructora Meridiano S.A.",
+      "b": "Valentina Escobar Quintero"
+    },
+    "ciudad": "Cúcuta",
+    "fecha": "1 de agosto de 2026",
+    "valor": "$466.660.000",
+    "plazo_meses": 36,
+    "paginas": 101,
+    "palabras": 59668,
+    "clausulas": 103,
+    "anexos": 12
+  },
+  {
+    "file": "07-confidencialidad-nda.pdf",
+    "title": "ACUERDO DE CONFIDENCIALIDAD Y NO DIVULGACIÓN (NDA MUTUO) No. CONFID-2024-5519",
+    "doc_type": "confidencialidad",
+    "partes": {
+      "a": "Logística Integral Cumbre S.A.S.",
+      "b": "Tecnologías Vertex Colombia S.A.S."
+    },
+    "ciudad": "Barranquilla",
+    "fecha": "5 de septiembre de 2025",
+    "valor": "$184.452.000",
+    "plazo_meses": 36,
+    "paginas": 100,
+    "palabras": 58515,
+    "clausulas": 107,
+    "anexos": 12
+  },
+  {
+    "file": "08-servicios-tecnologia.pdf",
+    "title": "CONTRATO DE PRESTACIÓN DE SERVICIOS DE DESARROLLO DE SOFTWARE Y TRATAMIENTO DE DATOS No. SERVIC-2025-7772",
+    "doc_type": "servicios",
+    "partes": {
+      "a": "Tecnologías Vertex Colombia S.A.S.",
+      "b": "Servicios Financieros Ribera S.A."
+    },
+    "ciudad": "Cali",
+    "fecha": "14 de julio de 2023",
+    "valor": "$188.006.000",
+    "plazo_meses": 24,
+    "paginas": 99,
+    "palabras": 58429,
+    "clausulas": 102,
+    "anexos": 12
+  },
+  {
+    "file": "09-suministro-mercantil.pdf",
+    "title": "CONTRATO DE SUMINISTRO MERCANTIL DE BIENES No. SUMINI-2025-6916",
+    "doc_type": "comercial",
+    "partes": {
+      "a": "Inversiones Andinas del Norte S.A.S.",
+      "b": "Textiles del Pacífico Ltda."
+    },
+    "ciudad": "Bogotá D.C.",
+    "fecha": "25 de febrero de 2026",
+    "valor": "$440.940.000",
+    "plazo_meses": 24,
+    "paginas": 99,
+    "palabras": 58294,
+    "clausulas": 104,
+    "anexos": 13
+  },
+  {
+    "file": "10-mandato-representacion.pdf",
+    "title": "CONTRATO DE MANDATO CON REPRESENTACIÓN PARA GESTIÓN JURÍDICA Y ADMINISTRATIVA No. MANDAT-2024-4376",
+    "doc_type": "juridico",
+    "partes": {
+      "a": "Agroindustrias La Esperanza S.A.S.",
+      "b": "Grupo Legal Corporativo Serrano & Asociados S.A.S."
+    },
+    "ciudad": "Cartagena",
+    "fecha": "7 de mayo de 2023",
+    "valor": "$308.622.000",
+    "plazo_meses": 18,
+    "paginas": 99,
+    "palabras": 57652,
+    "clausulas": 103,
+    "anexos": 13
+  }
+]

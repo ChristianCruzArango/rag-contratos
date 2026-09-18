@@ -1,0 +1,120 @@
+:host {
+  display: block;
+}
+
+.forja {
+  &__extremo {
+    padding: 1.1rem 0;
+    border-top: 1px solid var(--hilo);
+    border-bottom: 1px solid var(--hilo);
+
+    &--salida {
+      border-bottom: none;
+    }
+
+    .rotulo {
+      display: block;
+      margin-bottom: 0.6rem;
+    }
+
+    p:last-child {
+      margin: 0.6rem 0 0;
+    }
+  }
+
+  &__texto {
+    margin: 0;
+    max-width: 68ch;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--papel-2);
+  }
+
+  &__etapas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Una línea vertical une las etapas: es una cadena, no una lista suelta. */
+  &__etapa {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 1rem;
+    padding: 1.15rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0.75rem;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--hilo-vivo);
+    }
+
+    &:last-child::before {
+      bottom: 50%;
+    }
+  }
+
+  &__orden {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 50%;
+    border: 1px solid var(--hilo-vivo);
+    background: var(--tinta-0);
+    color: var(--papel-2);
+    font-size: 0.7rem;
+  }
+
+  &__titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin: 0.15rem 0 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  &__dato {
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: var(--semantico-tenue);
+    color: var(--semantico);
+    white-space: nowrap;
+  }
+
+  &__detalle {
+    margin: 0;
+    max-width: 64ch;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--papel-2);
+  }
+}
+
+@media (width <= 620px) {
+  .forja__etapa {
+    grid-template-columns: 1.8rem 1fr;
+    gap: 0.75rem;
+
+    &::before {
+      left: 0.6rem;
+    }
+  }
+
+  .forja__orden {
+    width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.62rem;
+  }
+}

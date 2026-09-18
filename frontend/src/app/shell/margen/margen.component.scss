@@ -1,0 +1,229 @@
+:host {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: var(--margen);
+  display: block;
+}
+
+.margen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  height: 100%;
+  padding: 1.6rem 0.9rem 1.6rem 1.4rem;
+  border-right: 1px solid var(--hilo);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--tinta-0) 88%, transparent),
+    color-mix(in srgb, var(--tinta-0) 55%, transparent)
+  );
+  backdrop-filter: blur(14px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.margen::-webkit-scrollbar {
+  display: none;
+}
+
+.marca {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+
+  &__linea {
+    font-family: var(--display);
+    font-variation-settings: 'wdth' 88;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+
+    &--2 {
+      color: var(--papel-3);
+      font-weight: 400;
+    }
+  }
+}
+
+.indice {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+
+  &__acto {
+    margin: 1.4rem 0 0.55rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--papel-3);
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  &__paso a {
+    display: grid;
+    grid-template-columns: 1.8rem 1fr;
+    align-items: baseline;
+    gap: 0.45rem;
+    padding: 0.34rem 0;
+    text-decoration: none;
+    color: var(--papel-2);
+    transition: color 0.5s var(--sale);
+  }
+
+  &__paso .numero {
+    font-size: 0.68rem;
+    color: var(--papel-3);
+    transition: color 0.5s var(--sale);
+  }
+
+  &__paso .titulo {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    letter-spacing: -0.008em;
+    text-wrap: balance;
+  }
+
+  /* Lo que ya ocurrió: la tinta se fija. */
+  &__paso.hecho a {
+    color: var(--papel);
+  }
+  &__paso.hecho .numero {
+    color: var(--semantico);
+  }
+
+  /* Donde está el lector ahora. */
+  &__paso.activo a {
+    color: var(--papel);
+  }
+  &__paso.activo .numero {
+    color: var(--papel);
+  }
+
+  &__paso.activo {
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -1.4rem;
+      top: 0.55rem;
+      width: 3px;
+      height: 0.85rem;
+      border-radius: 0 2px 2px 0;
+      background: var(--semantico);
+    }
+  }
+
+  &__paso a:hover {
+    color: var(--papel);
+  }
+}
+
+.pie {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border-top: 1px solid var(--hilo);
+  padding-top: 0.9rem;
+}
+
+.salida {
+  text-decoration: none;
+  color: var(--papel-2);
+  transition: color 0.5s var(--sale);
+
+  &:hover {
+    color: var(--papel);
+  }
+}
+
+.tema {
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--hilo-vivo);
+  border-radius: 999px;
+  background: rgb(var(--luz) / 4%);
+  color: var(--papel-2);
+  cursor: pointer;
+  transition:
+    border-color 0.5s var(--sale),
+    color 0.5s var(--sale),
+    background 0.5s var(--sale);
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--semantico) 55%, transparent);
+    background: var(--semantico-tenue);
+    color: var(--papel);
+  }
+}
+
+/* En móvil el margen se acuesta: una tira superior con scroll horizontal. */
+@media (width <= 900px) {
+  :host {
+    inset: 0 0 auto 0;
+    width: 100%;
+    height: auto;
+  }
+
+  .margen {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.1rem;
+    height: auto;
+    padding: 0.7rem 1rem;
+    border-right: none;
+    border-bottom: 1px solid var(--hilo);
+    overflow-x: auto;
+  }
+
+  .marca {
+    flex: none;
+  }
+  .marca__linea--2 {
+    display: none;
+  }
+
+  .indice {
+    display: flex;
+    gap: 0.9rem;
+    align-items: center;
+
+    &__acto {
+      display: none;
+    }
+
+    &__paso a {
+      grid-template-columns: auto;
+      padding: 0;
+    }
+
+    &__paso .titulo {
+      display: none;
+    }
+    &__paso .numero {
+      font-size: 0.7rem;
+    }
+    &__paso.activo::before {
+      display: none;
+    }
+    &__paso.activo .numero {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  .pie {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.7rem;
+    border-top: none;
+    padding-top: 0;
+    flex: none;
+  }
+}

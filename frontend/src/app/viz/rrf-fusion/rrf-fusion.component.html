@@ -1,0 +1,50 @@
+<div class="fusion">
+  <header class="fusion__cabecera">
+    <span class="rotulo sem">por significado · {{ vectorial().length }}</span>
+    <span class="rotulo lit">literal · {{ lexica().length }}</span>
+    <span class="rotulo">RRF · k = {{ k() }}</span>
+  </header>
+
+  <ol class="lista" #lista>
+    @for (fila of filas(); track fila.chunk_id) {
+      <li class="fila" [class.fila--elegida]="fila.elegido" [attr.data-origen]="origen(fila)">
+        <span class="fila__puestos dato">
+          <b class="sem" [class.nulo]="!fila.rank_semantico">
+            {{ fila.rank_semantico ?? '—' }}
+          </b>
+          <b class="lit" [class.nulo]="!fila.rank_lexico">
+            {{ fila.rank_lexico ?? '—' }}
+          </b>
+        </span>
+
+        <span class="fila__barra">
+          <span class="fila__relleno" [style.width.%]="ancho(fila)">
+            <i class="sem" [style.width.%]="reparto(fila).sem"></i>
+            <i class="lit" [style.width.%]="reparto(fila).lit"></i>
+          </span>
+        </span>
+
+        <span class="fila__texto">
+          <span class="fila__titulo">
+            {{ fila.seccion ?? fila.title }}
+            @if (fila.ocr) {
+              <em class="dud">OCR</em>
+            }
+          </span>
+          <span class="dato apagado">
+            @if (fila.pagina) {
+              pág. {{ fila.pagina }} ·
+            }
+            {{ formula(fila) }}
+          </span>
+        </span>
+
+        <span class="fila__score dato">{{ fila.score.toFixed(4) }}</span>
+      </li>
+    }
+  </ol>
+
+  <p class="dato apagado corte">
+    Los {{ elegidos() }} de arriba entran en el prompt. El resto se descarta.
+  </p>
+</div>

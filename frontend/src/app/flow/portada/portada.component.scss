@@ -1,0 +1,90 @@
+:host {
+  display: block;
+}
+
+.portada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.6rem;
+  min-height: 100dvh;
+  padding: clamp(5rem, 16vh, 11rem) 0 var(--acto);
+  scroll-margin-top: 0;
+
+  &__eyebrow {
+    display: inline-block;
+    padding: 0.32rem 0.85rem;
+    border: 1px solid var(--hilo-vivo);
+    border-radius: 999px;
+    color: var(--papel-2);
+  }
+
+  &__giro {
+    font-variation-settings: 'wdth' 92;
+    color: var(--papel-2);
+  }
+
+  &__entrada {
+    max-width: 58ch;
+    margin: 0;
+    font-size: clamp(1rem, 1.5vw, 1.12rem);
+    line-height: 1.75;
+    color: var(--papel-2);
+
+    /* El nombre del método y su desarrollo son lo único que se destaca. */
+    strong {
+      color: var(--papel);
+      font-weight: 500;
+    }
+
+    em {
+      font-style: italic;
+      color: var(--papel);
+    }
+  }
+}
+
+h1 {
+  margin: 0.4rem 0 0;
+}
+
+.estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.4rem;
+  margin: 1.2rem 0 0.6rem;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  dt {
+    margin: 0;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1.35rem;
+    letter-spacing: -0.04em;
+  }
+
+  &--vacio {
+    display: block;
+    max-width: 44ch;
+
+    code {
+      font-family: var(--mono);
+      color: var(--papel-2);
+    }
+  }
+}
+
+@media (width <= 900px) {
+  .portada {
+    /* La barra superior ya ocupa aire: el hero no necesita tanto por encima. */
+    padding-top: 2.4rem;
+    min-height: 0;
+  }
+}

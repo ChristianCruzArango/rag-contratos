@@ -1,0 +1,67 @@
+<section class="archivo" id="archivo" data-paso="archivo">
+  <header class="archivo__cabecera">
+    <h2>El archivo</h2>
+    <button class="accion" type="button" (click)="sembrar()" [disabled]="sembrando()">
+      {{ sembrando() ? 'Indexando…' : 'Indexar contratos de prueba' }}
+      <span class="accion__punta" aria-hidden="true">↗</span>
+    </button>
+  </header>
+
+  <p class="archivo__entrada">
+    Contratos sintéticos de prueba, en <code>seed-data/</code>. Cada uno tiene partes, cifras y
+    números de contrato únicos, así que se puede comprobar si el RAG recupera el fragmento exacto.
+    No son modelos contractuales válidos.
+  </p>
+
+  @if (documentos().length) {
+    <ol class="filas">
+      <li class="filas__cabecera rotulo">
+        <span>documento</span>
+        <span>tipo</span>
+        <span>págs.</span>
+        <span>fragmentos</span>
+        <span>OCR</span>
+        <span>indexado</span>
+        <span></span>
+      </li>
+      @for (d of documentos(); track d.id) {
+        <li class="filas__fila">
+          <span class="filas__titulo">{{ d.title }}</span>
+          <span class="dato apagado">{{ d.doc_type ?? '—' }}</span>
+          <span class="dato">{{ d.paginas ?? '—' }}</span>
+          <span class="dato">{{ d.chunk_count | number }}</span>
+          <span class="dato">
+            @if (d.ocr_aplicado) {
+              <b class="dud">
+                {{ d.ocr_paginas }} pág.
+                @if (d.ocr_confianza !== null) {
+                  · {{ d.ocr_confianza.toFixed(0) }}%
+                }
+              </b>
+            } @else {
+              <span class="apagado">no</span>
+            }
+          </span>
+          <span class="dato apagado">{{ d.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+          <button
+            class="filas__borrar"
+            type="button"
+            (click)="borrar(d)"
+            [attr.aria-label]="'Borrar ' + d.title"
+            title="Borrar del índice"
+          >
+            ×
+          </button>
+        </li>
+      }
+    </ol>
+  } @else {
+    <p class="dato apagado vacio">
+      El índice está vacío. Sube un PDF arriba o indexa los contratos de prueba.
+    </p>
+  }
+
+  @if (aviso(); as a) {
+    <p class="aviso dato" role="status">{{ a }}</p>
+  }
+</section>

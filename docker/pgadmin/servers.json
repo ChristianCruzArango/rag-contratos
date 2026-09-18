@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "RAG Contratos",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "ragdb",
+      "Username": "rag",
+      "SSLMode": "prefer",
+      "Comment": "El host es 'postgres' (el nombre del servicio), no localhost: pgAdmin corre dentro de la red de Docker."
+    }
+  }
+}

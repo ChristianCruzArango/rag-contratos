@@ -1,0 +1,80 @@
+:host {
+  display: block;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  padding: var(--acto) 0;
+  border-top: 1px solid var(--hilo);
+  scroll-margin-top: 2rem;
+
+  &__intro {
+    position: sticky;
+    top: clamp(2rem, 14vh, 7rem);
+    align-self: start;
+  }
+
+  &__numero {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    color: var(--papel-2);
+    margin-bottom: 1.1rem;
+  }
+
+  /* La entrada lleva toda la explicación del paso: sin apartes ni notas al
+     margen, que obligaban a saltar entre dos columnas para seguir el hilo. */
+  &__entrada {
+    margin-top: 1.4rem;
+    color: var(--papel-2);
+    font-size: 0.98rem;
+    line-height: 1.75;
+
+    p {
+      margin-bottom: 0.95rem;
+    }
+
+    :last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: var(--papel);
+      font-weight: 500;
+    }
+
+    em {
+      font-style: italic;
+      color: var(--papel);
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      color: var(--papel);
+      background: rgb(var(--luz) / 6%);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+  }
+
+  &__cuerpo {
+    min-width: 0;
+    padding-top: 0.4rem;
+  }
+}
+
+@media (width <= 1000px) {
+  .paso {
+    grid-template-columns: 1fr;
+    gap: 2.2rem;
+    padding: clamp(3.5rem, 9vh, 6rem) 0;
+
+    &__intro {
+      position: static;
+    }
+  }
+}

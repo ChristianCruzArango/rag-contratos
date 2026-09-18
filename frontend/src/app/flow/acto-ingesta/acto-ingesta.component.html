@@ -1,0 +1,492 @@
+<div class="acto">
+  <h2 class="acto__titulo">Acto I · Guardar el documento</h2>
+  <p class="acto__entrada">
+    A un PDF de cien páginas no se le puede preguntar nada. Se puede leer de principio a fin, y poco
+    más: buscar una palabra exacta si lleva texto dentro, y ni eso si resulta ser un escaneo. Estos
+    seis pasos lo dejan consultable. Se le saca el texto página a página, se reconoce lo que venía
+    en imágenes, se corta por cláusula en fragmentos que saben de qué página salieron, cada
+    fragmento se convierte en una lista de números que representa lo que dice, y todo acaba en una
+    tabla de Postgres con dos índices encima: uno para buscar por significado y otro para buscar al
+    pie de la letra.
+  </p>
+</div>
+
+<!-- ═══ 01 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="recepcion" numero="01" titulo="Llega el archivo">
+  <div entrada>
+    <p>
+      El archivo llega al servidor como lo que es: un montón de bytes. Todavía no hay texto, ni
+      páginas, ni cláusulas — nada con lo que se pueda buscar. Sacar todo eso de ahí es el trabajo
+      de los cinco pasos que vienen.
+    </p>
+  </div>
+
+  <div
+    class="zona"
+    [class.zona--activa]="arrastrando()"
+    [class.zona--ocupada]="store.indexando()"
+    (dragover)="sobrevolar($event, true)"
+    (dragleave)="sobrevolar($event, false)"
+    (drop)="soltar($event)"
+  >
+    <input
+      type="file"
+      id="archivo"
+      class="zona__input"
+      accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.txt,.md"
+      (change)="elegir($event)"
+      [disabled]="store.indexando()"
+    />
+    <label for="archivo" class="zona__etiqueta">
+      <span class="zona__titulo">Suelta aquí un contrato en PDF</span>
+      <span class="dato apagado">
+        nativo o escaneado · también .png, .jpg, .tiff o texto plano
+      </span>
+      <span class="accion accion--semantica" aria-hidden="true">
+        Elegir un archivo
+        <span class="accion__punta">↗</span>
+      </span>
+    </label>
+
+    @if (store.indexando()) {
+      <span class="zona__trabajando dato sem">indexando…</span>
+    }
+  </div>
+
+  @if (store.error(); as fallo) {
+    <p class="fallo" role="alert">{{ fallo }}</p>
+  }
+
+  @if (store.recepcion(); as r) {
+    <dl class="hechos">
+      <div>
+        <dt class="rotulo">archivo</dt>
+        <dd>{{ r.archivo }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">peso</dt>
+        <dd class="dato">{{ peso() }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">formato</dt>
+        <dd class="dato">{{ r.formato }}</dd>
+      </div>
+    </dl>
+  }
+</app-paso>
+
+<!-- ═══ 02 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="extraccion" numero="02" titulo="Se abre el PDF">
+  <div entrada>
+    <p>
+      El texto se saca <strong>página por página</strong>, no de una vez. Las páginas se unen con un
+      carácter de salto invisible, y gracias a esa marca cada fragmento podrá decir después de qué
+      página exacta salió: la diferencia entre citar «está en el contrato» y citar «cláusula
+      séptima, página 34».
+    </p>
+    <p>
+      Aquí también se decide algo que condiciona todo lo que viene. Un PDF puede ser dos cosas muy
+      distintas. Si se exportó desde un programa contiene caracteres de verdad y el texto sale
+      entero. Si es un escaneo contiene <strong>una imagen de la página</strong>: se abre igual, un
+      humano lo lee igual, pero al pedirle el texto devuelve cadena vacía.
+    </p>
+    <p>
+      Ese documento entraría al índice con cero fragmentos —invisible— y el modelo diría «no
+      encuentro esa información» sobre un contrato que sí está cargado. Por eso este paso cuenta los
+      caracteres de cada página, una por una, y marca en ámbar las que no llegan al mínimo.
+    </p>
+  </div>
+
+  @if (store.extraccion(); as e) {
+    <viz-page-grid
+      [paginas]="e.paginas"
+      [objetivo]="store.ocrPlan()?.objetivo ?? []"
+      [reconocidas]="store.ocrPaginas()"
+    />
+
+    <div class="cifras">
+      <app-cifra [valor]="e.paginas.length" rotulo="páginas" />
+      <app-cifra [valor]="e.caracteres" rotulo="caracteres extraídos" />
+      <app-cifra [valor]="conTexto()" rotulo="páginas con texto" />
+      <app-cifra [valor]="e.vacias" rotulo="páginas en blanco" style="--tono: var(--duda)" />
+      <app-cifra [valor]="e.ms" sufijo="ms" rotulo="tardó" />
+    </div>
+
+    @if (e.vacias > 0) {
+      <p class="veredicto">
+        <span class="veredicto__marca dud">!</span>
+        <span>
+          <b>{{ e.vacias }} de {{ e.paginas.length }} páginas volvieron vacías.</b> No están en
+          blanco: son fotos. Sin el paso siguiente, este contrato sería invisible para el índice.
+        </span>
+      </p>
+    } @else {
+      <p class="veredicto">
+        <span class="veredicto__marca lit">✓</span>
+        <span>
+          <b>Todas las páginas traían texto real.</b> Este PDF se exportó desde un programa, no se
+          fotografió: no hará falta OCR y la indexación tardará segundos en vez de minutos.
+        </span>
+      </p>
+    }
+  } @else {
+    <p class="espera dato apagado">Esperando un archivo…</p>
+  }
+</app-paso>
+
+<!-- ═══ 03 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="ocr" numero="03" titulo="Lo que no se deja leer">
+  <div entrada>
+    <p>
+      <strong>OCR</strong> —reconocimiento óptico de caracteres— es lo que convierte la foto de una
+      página en texto. Mira la forma de cada mancha de tinta y decide qué letra es. Es lo único que
+      hace que un escaneo pase de ser una imagen a ser algo buscable.
+    </p>
+    <p>
+      Aquí sólo se paga donde hace falta: en modo <code>auto</code> se rasterizan y se reconocen
+      únicamente las páginas que no llegan al mínimo de caracteres. Un PDF nativo no paga este paso;
+      un escaneo lo paga sólo en las páginas que lo necesitan.
+    </p>
+    <p>
+      El OCR no falla en bloque: falla en un carácter. <code>Ltda.</code> se vuelve
+      <code>Lida.</code>, y un guion se vuelve dos puntos. El error peligroso no es el que se lee
+      raro, sino el que pasa desapercibido: si en un documento el número de contrato queda escrito
+      de dos formas distintas, buscarlo exacto recupera sólo una parte de las veces que aparece.
+    </p>
+    <p>
+      Por eso cada fragmento que viene de OCR se marca, el prompt del paso 11 avisa al modelo de que
+      puede estar mal leído, y la cita lo dice. Corregirlo por su cuenta sería peor: inventaría un
+      dato.
+    </p>
+  </div>
+
+  @if (store.ocrPlan(); as plan) {
+    @if (plan.innecesario) {
+      <p class="veredicto">
+        <span class="veredicto__marca lit">✓</span>
+        El OCR no se ejecutó: ninguna página bajó de los
+        <b class="dato">{{ plan.minChars }}</b> caracteres mínimos. Un PDF nativo no paga este paso.
+      </p>
+      <p class="pie">
+        Si el contrato llegara escaneado, aquí verías las páginas en ámbar pasando una a una por el
+        motor, con su confianza medida. Hay dos en <code>seed-data/escaneados/</code> para probarlo.
+      </p>
+    } @else {
+      <dl class="hechos">
+        <div>
+          <dt class="rotulo">motor</dt>
+          <dd class="dato">{{ plan.motor }}</dd>
+        </div>
+        <div>
+          <dt class="rotulo">modo</dt>
+          <dd class="dato">{{ plan.modo }}</dd>
+        </div>
+        <div>
+          <dt class="rotulo">umbral</dt>
+          <dd class="dato">{{ plan.minChars }} car.</dd>
+        </div>
+        <div>
+          <dt class="rotulo">a reconocer</dt>
+          <dd class="dato dud">{{ plan.objetivo.length }} páginas</dd>
+        </div>
+      </dl>
+
+      <div class="ocr-vivo">
+        <div class="ocr-vivo__barra">
+          <span [style.width.%]="(store.ocrPaginas().length / plan.objetivo.length) * 100"></span>
+        </div>
+        <p class="dato apagado">
+          {{ store.ocrPaginas().length }} de {{ plan.objetivo.length }} páginas reconocidas
+        </p>
+      </div>
+
+      @if (ultimaPagina(); as p) {
+        <figure class="lectura">
+          <figcaption class="rotulo">
+            página {{ p.pagina }} · {{ p.caracteres }} caracteres · {{ p.ms }} ms
+            @if (p.confianza !== null) {
+              · confianza
+              <b [class.dud]="confianzaBaja()" [class.lit]="!confianzaBaja()">
+                {{ p.confianza.toFixed(1) }}%
+              </b>
+            }
+          </figcaption>
+          <p class="lectura__texto">{{ p.muestra }}…</p>
+        </figure>
+      }
+
+      @if (store.ocrResumen(); as res) {
+        <div class="cifras">
+          <app-cifra
+            [valor]="res.informe.paginas_ocr.length"
+            rotulo="páginas reconocidas"
+            style="--tono: var(--duda)"
+          />
+          @if (res.informe.confianza_media !== null) {
+            <app-cifra
+              [valor]="res.informe.confianza_media"
+              [decimales]="1"
+              sufijo="%"
+              rotulo="confianza media"
+            />
+          }
+          <app-cifra [valor]="res.informe.paginas_baja_confianza.length" rotulo="páginas dudosas" />
+          <app-cifra [valor]="res.informe.duracion_ms" sufijo="ms" rotulo="tardó" />
+        </div>
+      }
+    }
+  } @else {
+    <p class="espera dato apagado">Esperando a la extracción…</p>
+  }
+</app-paso>
+
+<!-- ═══ 04 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="troceo" numero="04" titulo="Se parte en fragmentos">
+  <div entrada>
+    <p>
+      Un contrato de cien páginas no cabe en una pregunta, y tampoco ayudaría: buscarlo entero
+      devuelve siempre lo mismo. Hay que partirlo, pero no a ciegas.
+    </p>
+    <p>
+      Primero se corta por <strong>cláusula o anexo</strong>, y sólo dentro de una cláusula
+      demasiado larga se sigue cortando por párrafo. Así un fragmento nunca mezcla dos cláusulas
+      distintas, y lleva encima su número y su página.
+    </p>
+    <p>
+      Entre fragmento y fragmento se repiten los últimos caracteres del anterior. Ese
+      <strong>solape</strong> existe porque una frase partida justo por la mitad quedaría incompleta
+      en los dos lados y no la encontraría ninguna búsqueda. El corte siempre cae en frontera de
+      palabra.
+    </p>
+  </div>
+
+  @if (store.troceo(); as t) {
+    <div class="cifras">
+      <app-cifra [valor]="t.total" rotulo="fragmentos" />
+      <app-cifra [valor]="t.secciones" rotulo="secciones distintas" />
+      <app-cifra [valor]="t.chunkSize" sufijo="car." rotulo="tamaño objetivo" />
+      <app-cifra [valor]="t.overlap" sufijo="car." rotulo="solape" />
+      @if (t.conOcr > 0) {
+        <app-cifra [valor]="t.conOcr" rotulo="marcados como OCR" style="--tono: var(--duda)" />
+      }
+    </div>
+
+    <viz-chunk-river [muestras]="t.muestras" [overlap]="t.overlap" />
+  } @else if (yaEstaba()) {
+    <p class="veredicto">
+      <span class="veredicto__marca lit">=</span>
+      Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno guardado,
+      así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron embeddings de nuevo.
+    </p>
+  } @else {
+    <p class="espera dato apagado">Esperando al texto…</p>
+  }
+</app-paso>
+
+<!-- ═══ 05 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="embeddings" numero="05" titulo="Cada fragmento, un vector">
+  <div entrada>
+    <p>
+      Aquí ocurre lo que hace posible todo lo demás. Cada fragmento se manda a un modelo de
+      <strong>embeddings</strong> que devuelve una lista de
+      @if (dimensiones()) {
+        <b class="dato">{{ dimensiones() }}</b>
+      } @else {
+        varios cientos de
+      }
+      números. Esa lista es una posición: textos que significan cosas parecidas caen en posiciones
+      cercanas, aunque no compartan ni una palabra.
+    </p>
+    <p>
+      No es un resumen ni una huella. Es una dirección dentro de un espacio donde la cercanía
+      <em>es</em> el parecido de significado.
+    </p>
+    <p>
+      Por qué hace falta: alguien pregunta «¿cuánto sube el arriendo cada año?» y en el contrato no
+      aparece ni «sube» ni «arriendo» — dice «el canon se reajustará anualmente». Una búsqueda por
+      palabras no encuentra nada. La búsqueda por vectores sí, porque las dos frases caen cerca.
+    </p>
+    <p>
+      Un detalle de infraestructura que sorprende:
+      <strong>OpenRouter no tiene endpoint de embeddings</strong>, sólo de chat. Por eso este
+      proyecto usa dos proveedores distintos — uno genera los vectores, otro redacta la respuesta.
+    </p>
+  </div>
+
+  @if (ultimoLote(); as lote) {
+    @if (muestraChunk(); as chunk) {
+      <h3 class="sub">Cómo se fabrica, paso a paso</h3>
+      <viz-embedding-forge
+        [texto]="chunk.texto"
+        [tokens]="chunk.tokens"
+        [modelo]="lote.modelo"
+        [dimensiones]="lote.dimensiones"
+        [vector]="lote.muestra"
+      />
+    }
+
+    <h3 class="sub">Y así {{ lote.total }} veces, de {{ lote.lotes }} en {{ lote.lotes }}</h3>
+
+    <div class="progreso">
+      <div class="progreso__barra">
+        <span class="sem" [style.width.%]="progresoLotes()"></span>
+      </div>
+      <p class="dato apagado">
+        lote {{ lote.lote }} de {{ lote.lotes }} · {{ lote.hechos | number }} de
+        {{ lote.total | number }} fragmentos · {{ lote.ms }} ms el último
+      </p>
+    </div>
+
+    <p class="pie">
+      Los fragmentos no van de uno en uno: se mandan en lotes. Una llamada con 64 textos cuesta
+      prácticamente lo mismo que una con uno solo, así que indexar de uno en uno multiplicaría el
+      tiempo por el número de fragmentos.
+    </p>
+
+    <div class="cifras">
+      <app-cifra
+        [valor]="lote.dimensiones"
+        rotulo="dimensiones por vector"
+        style="--tono: var(--semantico)"
+      />
+      <app-cifra [valor]="lote.total" rotulo="vectores a generar" />
+      <app-cifra [valor]="lote.lotes" rotulo="llamadas a la API" />
+    </div>
+
+    <dl class="hechos">
+      <div>
+        <dt class="rotulo">modelo</dt>
+        <dd class="dato">{{ lote.modelo }}</dd>
+      </div>
+    </dl>
+  } @else if (yaEstaba()) {
+    <p class="veredicto">
+      <span class="veredicto__marca lit">=</span>
+      Este documento ya estaba en el índice. El SHA-256 de su contenido coincide con uno guardado,
+      así que el pipeline se detuvo aquí: no se volvió a trocear ni se pagaron embeddings de nuevo.
+    </p>
+  } @else {
+    <p class="espera dato apagado">Esperando a los fragmentos…</p>
+  }
+</app-paso>
+
+<!-- ═══ 06 ═══════════════════════════════════════════════════════════════ -->
+<app-paso ancla="pgvector" numero="06" titulo="Todo cae en pgvector">
+  <div entrada>
+    <p>
+      Los vectores se guardan en Postgres, en una columna de tipo
+      <code>vector({{ dimensiones() || 1536 }})</code> que aporta la extensión
+      <strong>pgvector</strong>. Al lado, en la misma fila, se guarda el texto y un
+      <code>tsvector</code> para la búsqueda literal: los dos buscadores viven juntos.
+    </p>
+    <p>
+      Dos de las columnas no las escribe el backend. El <code>id</code> lo pone Postgres con
+      <code>gen_random_uuid()</code>, y <code>tsv</code> es una <strong>columna generada</strong>:
+      nadie la envía nunca, Postgres la recalcula sola cada vez que cambia <code>content</code>. Ahí
+      vive el buscador literal del paso 09, y por eso no puede desincronizarse con el texto.
+    </p>
+    <p>
+      Las filas no van de una en una: se insertan <strong>de 200 en 200</strong> y dentro de una
+      transacción junto con la fila de <code>documents</code>. Si algo falla a mitad, no queda un
+      documento registrado con la mitad de sus fragmentos — no queda nada.
+    </p>
+  </div>
+
+  @if (store.almacenado(); as a) {
+    <div class="cifras">
+      <app-cifra [valor]="a.filas" rotulo="filas insertadas" />
+      <app-cifra [valor]="a.dimensiones" rotulo="dimensiones" style="--tono: var(--semantico)" />
+      <app-cifra [valor]="a.ms" sufijo="ms" rotulo="en escribirlas" />
+      @if (store.ingestaLista(); as fin) {
+        <app-cifra [valor]="fin.ms" sufijo="ms" rotulo="de PDF a índice" />
+      }
+    </div>
+  } @else if (yaEstaba()) {
+    <p class="veredicto">
+      <span class="veredicto__marca lit">=</span>
+      Nada nuevo que escribir: el documento ya ocupaba
+      <b class="dato">{{ store.ingestaLista()?.fragmentos }}</b> filas en <code>chunks</code>.
+    </p>
+  }
+
+  @if (esquema(); as e) {
+    <pre class="sql"><code>{{ e.ddl }}</code></pre>
+    <p class="pie dato apagado">
+      Leído del catálogo de Postgres, no escrito a mano: si alguien cambia la tabla, esto cambia con
+      ella.
+    </p>
+
+    @if (otrosIndices().length) {
+      <h3 class="sub">Los otros índices de la misma tabla</h3>
+      <ul class="indices">
+        @for (i of otrosIndices(); track i.nombre) {
+          <li>
+            <code>{{ i.definicion }}</code>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="espera dato apagado">El esquema aparece cuando la API responda.</p>
+  }
+
+  @if (muestraChunk(); as chunk) {
+    @if (ultimoLote(); as lote) {
+      <h3 class="sub">Una fila, columna a columna</h3>
+      <p class="pie">
+        Ésta es la fila que le toca al fragmento
+        <b class="dato">{{ chunk.index }}</b>
+        @if (chunk.seccion) {
+          — {{ chunk.seccion }}
+        }
+        @if (chunk.pagina) {
+          , página {{ chunk.pagina }}
+        }
+        — con el valor que de verdad acaba en cada columna.
+      </p>
+
+      <viz-chunk-row
+        [muestra]="chunk"
+        [vector]="lote.muestra"
+        [documentId]="store.almacenado()?.documentId ?? '(se asigna al insertar)'"
+        [dimensiones]="lote.dimensiones"
+      />
+
+      <p class="pie">
+        El <code>embedding</code> viaja como texto: pgvector acepta el literal
+        <code>'[0.031,-0.118,…]'</code> y lo convierte al tipo
+        <code>vector({{ lote.dimensiones }})</code> en el propio <code>INSERT</code>.
+      </p>
+    }
+  }
+
+  <h3 class="sub">El mapa de lo que acabas de guardar</h3>
+  @if (espacio(); as e) {
+    <viz-vector-space [espacio]="e" />
+    <p class="pie">
+      Nadie le dijo al sistema qué es un contrato de arrendamiento: esos grupos de color aparecieron
+      solos. Es una sombra de {{ e.dimensiones }} dimensiones aplastadas a dos —los ejes conservan
+      el {{ (e.varianza[0] * 100).toFixed(1) }} % y el {{ (e.varianza[1] * 100).toFixed(1) }} %—,
+      así que dos puntos que se tocan en el dibujo pueden no tocarse de verdad. Al revés no: lo que
+      está lejos aquí, está lejos.
+    </p>
+  } @else {
+    <p class="espera dato apagado">El mapa aparece cuando termine la indexación.</p>
+  }
+
+  <h3 class="sub">
+    @if (stats(); as st) {
+      Por qué no hay que mirar los {{ st.fragmentos | number }}
+    } @else {
+      Por qué no hay que mirarlos todos
+    }
+  </h3>
+  <p class="pie">
+    Comparar la consulta contra cada fragmento funcionaría, pero cuesta más cuanto más crece el
+    índice. <b>HNSW</b> construye un grafo por capas: arriba pocos nodos muy separados, abajo todos.
+    La búsqueda entra por arriba, salta al vecino más prometedor y baja. Llega a los mejores
+    candidatos mirando una fracción minúscula de la tabla, a cambio de no garantizar que sean
+    <i>exactamente</i> los mejores.
+  </p>
+  <viz-hnsw-graph [indice]="esquema()?.hnsw ?? null" />
+</app-paso>

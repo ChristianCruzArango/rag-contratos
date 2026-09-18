@@ -1,0 +1,23 @@
+<div class="fila" #raiz>
+  <ol class="fila__columnas">
+    @for (col of columnas(); track col.nombre) {
+      <li class="fila__columna" [class.fila__columna--generada]="col.generada">
+        <span class="fila__nombre dato">{{ col.nombre }}</span>
+        <span class="fila__tipo dato apagado">{{ col.tipo }}</span>
+
+        @if (col.esVector) {
+          <div class="fila__valor fila__valor--vector">
+            <viz-vector-strip [valores]="vector()" etiqueta="el vector de esta fila" />
+            <code class="dato apagado">{{ col.valor }}</code>
+          </div>
+        } @else {
+          <code class="fila__valor">{{ col.valor }}</code>
+        }
+
+        @if (col.generada) {
+          <span class="fila__marca dato">la pone Postgres</span>
+        }
+      </li>
+    }
+  </ol>
+</div>

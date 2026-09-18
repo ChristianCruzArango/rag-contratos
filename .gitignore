@@ -1,0 +1,32 @@
+# ── Dependencias y compilados ────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+coverage/
+
+# ── Secretos y configuración local ───────────────────────────────────────────
+# El .env real nunca se sube. Lo que se versiona es .env.example, con
+# marcadores de posición.
+.env
+.env.*
+!.env.example
+
+# Herramientas y configuración de esta máquina: no forman parte del proyecto
+.mcp.json
+.chalc/
+.chalc.json
+.claude/
+.vscode/
+CLAUDE.md
+
+# ── Cachés ───────────────────────────────────────────────────────────────────
+backend/.cache/
+.DS_Store
+*.log
+
+# ── Datos generados ──────────────────────────────────────────────────────────
+# Los contratos de prueba se regeneran: npm run seed:generate (en backend/)
+seed-data/*.pdf
+seed-data/*.txt
+seed-data/escaneados/

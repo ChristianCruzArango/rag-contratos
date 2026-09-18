@@ -1,0 +1,31 @@
+<div class="forja" #raiz>
+  <!-- Lo que entra -->
+  <div class="forja__extremo">
+    <span class="rotulo">entra</span>
+    <p class="forja__texto">{{ recorte() }}</p>
+  </div>
+
+  <ol class="forja__etapas">
+    @for (etapa of etapas(); track etapa.clave; let i = $index) {
+      <li class="forja__etapa">
+        <span class="forja__orden dato">{{ i + 1 }}</span>
+        <div class="forja__cuerpo">
+          <h4 class="forja__titulo">
+            {{ etapa.titulo }}
+            @if (etapa.dato) {
+              <span class="forja__dato dato">{{ etapa.dato }}</span>
+            }
+          </h4>
+          <p class="forja__detalle">{{ etapa.detalle }}</p>
+        </div>
+      </li>
+    }
+  </ol>
+
+  <!-- Lo que sale -->
+  <div class="forja__extremo forja__extremo--salida">
+    <span class="rotulo">sale</span>
+    <viz-vector-strip [valores]="vector()" etiqueta="el fragmento, ya como vector" />
+    <p class="dato apagado">{{ dimensiones() }} números · {{ modelo() }}</p>
+  </div>
+</div>

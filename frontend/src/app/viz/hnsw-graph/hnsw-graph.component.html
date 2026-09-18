@@ -1,0 +1,75 @@
+<figure class="grafo" #grafo>
+  @if (indice(); as idx) {
+    @if (capas().length) {
+      <svg
+        viewBox="0 0 300 180"
+        role="img"
+        [attr.aria-label]="
+          'Índice HNSW con ' + capas().length + ' capas para ' + miles(idx.filas) + ' filas'
+        "
+      >
+        @for (capa of capas(); track capa.nivel) {
+          <g class="capa">
+            <line class="suelo" x1="8" [attr.y1]="capa.y + 13" x2="292" [attr.y2]="capa.y + 13" />
+            <text class="rotulo-capa" x="8" [attr.y]="capa.y - 7">
+              capa {{ capa.nivel }} · ≈{{ miles(capa.nodosReales) }} nodos
+            </text>
+
+            @for (a of aristas(capa); track a.d) {
+              <path class="arista" [attr.d]="a.d" />
+            }
+            @for (n of capa.nodos; track n.id) {
+              <circle
+                class="nodo"
+                [attr.cx]="n.x"
+                [attr.cy]="capa.y"
+                r="3.2"
+                [class.en-ruta]="capa.ruta.includes(n.id)"
+              />
+            }
+          </g>
+        }
+
+        <path class="descenso" [attr.d]="descenso()" />
+      </svg>
+
+      <figcaption class="grafo__pie">
+        <p class="dato apagado">
+          <b>Las capas y sus tamaños salen de tus datos:</b>
+          {{ miles(idx.filas) }} filas con <code>m = {{ idx.m }}</code> vecinos por nodo dan
+          {{ capas().length }} {{ capas().length === 1 ? 'capa' : 'capas' }}, cada una con unas
+          <code>m</code> veces menos nodos que la de abajo. Los círculos dibujados son una muestra:
+          las posiciones sí son inventadas, porque el grafo interno no se puede leer desde SQL.
+        </p>
+
+        <dl class="grafo__params">
+          <div>
+            <dt class="rotulo">m</dt>
+            <dd class="dato">{{ idx.m }}</dd>
+          </div>
+          <div>
+            <dt class="rotulo">ef_construction</dt>
+            <dd class="dato">{{ idx.efConstruction }}</dd>
+          </div>
+          @if (idx.efSearch) {
+            <div>
+              <dt class="rotulo">ef_search</dt>
+              <dd class="dato">{{ idx.efSearch }}</dd>
+            </div>
+          }
+          <div>
+            <dt class="rotulo">en disco</dt>
+            <dd class="dato">{{ idx.tamano }}</dd>
+          </div>
+        </dl>
+      </figcaption>
+    } @else {
+      <p class="dato apagado">
+        El índice existe pero está vacío: sin filas no hay capas que construir. Indexa un documento
+        y aparecen.
+      </p>
+    }
+  } @else {
+    <p class="dato apagado">Esperando a que la API describa el índice…</p>
+  }
+</figure>

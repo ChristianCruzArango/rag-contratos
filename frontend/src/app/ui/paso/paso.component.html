@@ -1,0 +1,11 @@
+<section class="paso" [id]="ancla()" [attr.data-paso]="ancla()">
+  <div class="paso__intro" revelar>
+    <span class="paso__numero">{{ numero() }}</span>
+    <h2>{{ titulo() }}</h2>
+    <div class="paso__entrada"><ng-content select="[entrada]" /></div>
+  </div>
+
+  <div class="paso__cuerpo" [revelar]="80">
+    <ng-content />
+  </div>
+</section>

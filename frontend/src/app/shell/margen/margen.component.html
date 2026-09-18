@@ -1,0 +1,41 @@
+<nav class="margen" aria-label="Pasos del recorrido">
+  <a class="marca" href="#portada">
+    <span class="marca__linea">El recorrido</span>
+    <span class="marca__linea marca__linea--2">de un contrato</span>
+  </a>
+
+  <ol class="indice">
+    @for (paso of pasos; track paso.id; let i = $index) {
+      @if (i === 0 || pasos[i - 1].acto !== paso.acto) {
+        <li class="indice__acto rotulo">
+          {{ paso.acto === 'ingesta' ? 'I · Guardar' : 'II · Preguntar' }}
+        </li>
+      }
+      <li
+        class="indice__paso"
+        [class.hecho]="hechos().has(paso.cumple)"
+        [class.activo]="visible() === paso.id"
+      >
+        <a [href]="'#' + paso.id">
+          <span class="dato numero">{{ numero(i) }}</span>
+          <span class="titulo">{{ paso.titulo }}</span>
+        </a>
+      </li>
+    }
+  </ol>
+
+  <div class="pie">
+    <a class="salida" href="#archivo">
+      <span class="dato">Archivo indexado</span>
+    </a>
+
+    <button
+      class="tema"
+      type="button"
+      (click)="tema.alternar()"
+      [attr.aria-label]="tema.tema() === 'claro' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'"
+    >
+      <span class="dato">{{ tema.tema() === 'claro' ? 'oscuro' : 'claro' }}</span>
+    </button>
+  </div>
+</nav>

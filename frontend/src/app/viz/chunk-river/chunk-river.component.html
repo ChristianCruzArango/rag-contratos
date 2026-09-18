@@ -1,0 +1,29 @@
+<div class="rio" #rio>
+  @for (chunk of muestras(); track chunk.index; let primero = $first) {
+    @if (!primero) {
+      <div class="costura" aria-hidden="true">
+        <span class="dato">solape {{ overlap() }} car.</span>
+      </div>
+    }
+
+    <article class="pieza" [class.pieza--ocr]="chunk.ocr">
+      <aside class="pieza__margen">
+        <span class="dato">{{ pad(chunk.index) }}</span>
+        <span class="dato apagado">p.{{ chunk.pagina }}</span>
+        @if (chunk.ocr) {
+          <span class="dato dud">OCR</span>
+        }
+      </aside>
+
+      <div class="pieza__cuerpo">
+        @if (chunk.seccion) {
+          <h4 class="pieza__seccion">{{ chunk.seccion }}</h4>
+        } @else {
+          <h4 class="pieza__seccion apagado">{{ chunk.tipo_seccion }}</h4>
+        }
+        <p class="pieza__texto">{{ chunk.texto }}…</p>
+        <span class="dato apagado"> {{ chunk.caracteres }} car. · ~{{ chunk.tokens }} tokens </span>
+      </div>
+    </article>
+  }
+</div>

@@ -1,0 +1,25 @@
+<div class="rejilla" #rejilla>
+  @for (hoja of hojas(); track hoja.n) {
+    <figure
+      class="hoja"
+      [class.hoja--vacia]="hoja.vacia && !hoja.reconocida"
+      [class.hoja--cola]="hoja.enCola && !hoja.reconocida"
+      [class.hoja--ocr]="hoja.reconocida"
+      [attr.data-pagina]="hoja.n"
+      [title]="titulo(hoja)"
+    >
+      <span class="hoja__rayas">
+        @for (raya of rayas(hoja); track $index) {
+          <i [style.width.%]="raya"></i>
+        }
+      </span>
+      @if (hoja.enCola && !hoja.reconocida) {
+        <span class="hoja__barrido"></span>
+      }
+      <figcaption class="dato">{{ hoja.n }}</figcaption>
+    </figure>
+  }
+  @if (restantes() > 0) {
+    <p class="resto dato apagado">+{{ restantes() }} páginas más</p>
+  }
+</div>

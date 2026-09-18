@@ -1,0 +1,23 @@
+<figure class="dial">
+  <svg viewBox="0 0 132 108" role="img" [attr.aria-label]="descripcion()">
+    <!-- Arco del ángulo -->
+    <path class="arco" [attr.d]="arco()" />
+
+    <!-- Vector de la consulta -->
+    <line class="eje eje--consulta" x1="14" y1="94" x2="122" y2="94" />
+    <circle class="punta" cx="122" cy="94" r="2.6" />
+
+    <!-- Vector del fragmento, girado por el ángulo real -->
+    <g [attr.transform]="'rotate(' + -grados() + ' 14 94)'">
+      <line class="eje eje--fragmento" x1="14" y1="94" x2="122" y2="94" />
+      <circle class="punta punta--fragmento" cx="122" cy="94" r="2.6" />
+    </g>
+
+    <text class="angulo dato" x="52" y="88">{{ grados().toFixed(1) }}°</text>
+  </svg>
+
+  <figcaption>
+    <span class="valor">{{ similitud().toFixed(3) }}</span>
+    <span class="rotulo">coseno</span>
+  </figcaption>
+</figure>

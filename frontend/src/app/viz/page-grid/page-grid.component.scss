@@ -1,0 +1,104 @@
+:host {
+  display: block;
+}
+
+.rejilla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  perspective: 900px;
+}
+
+.hoja {
+  --tono: var(--papel-3);
+  position: relative;
+  width: 34px;
+  margin: 0;
+  padding: 4px 3px 0;
+  aspect-ratio: 1 / 1.414;
+  border: 1px solid var(--hilo);
+  border-radius: 2px;
+  background: rgb(var(--luz) / 3%);
+  overflow: hidden;
+  transition:
+    border-color 0.6s var(--sale),
+    background 0.6s var(--sale);
+
+  &__rayas {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    i {
+      height: 1px;
+      background: var(--tono);
+      opacity: 0.72;
+      border-radius: 1px;
+    }
+  }
+
+  figcaption {
+    position: absolute;
+    inset: auto 0 1px 0;
+    text-align: center;
+    font-size: 0.56rem;
+    color: var(--papel-3);
+  }
+
+  /* Una página que el programa no sabe leer. */
+  &--vacia {
+    border-color: color-mix(in oklab, var(--duda) 42%, transparent);
+    background: var(--duda-tenue);
+  }
+
+  /* En cola de OCR: la recorre una línea de escáner. */
+  &--cola {
+    border-color: color-mix(in oklab, var(--duda) 65%, transparent);
+  }
+
+  &__barrido {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in oklab, var(--duda) 55%, transparent) 46%,
+      color-mix(in oklab, var(--duda) 90%, transparent) 50%,
+      color-mix(in oklab, var(--duda) 55%, transparent) 54%,
+      transparent 100%
+    );
+    animation: barrer 1.5s var(--sale) infinite;
+  }
+
+  /* Ya reconocida: el texto existe, pero se marca de dónde vino. */
+  &--ocr {
+    --tono: var(--duda);
+    border-color: color-mix(in oklab, var(--duda) 50%, transparent);
+    background: rgb(var(--luz) / 4%);
+
+    .hoja__rayas i {
+      opacity: 0.85;
+    }
+  }
+}
+
+.resto {
+  align-self: flex-end;
+  margin: 0 0 0 0.5rem;
+}
+
+@keyframes barrer {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja__barrido {
+    animation: none;
+    opacity: 0.4;
+  }
+}

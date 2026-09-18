@@ -1,0 +1,18 @@
+<figure class="vector">
+  <div class="vector__caja" #caja role="img" [attr.aria-label]="descripcion()">
+    <span class="vector__cero" aria-hidden="true"></span>
+    <div class="vector__barras">
+      @for (b of barras(); track $index) {
+        <i [class.neg]="!b.positivo" [style.height.%]="b.alto" [title]="b.v.toFixed(3)"></i>
+      }
+    </div>
+    <span class="vector__signo vector__signo--mas" aria-hidden="true">+</span>
+    <span class="vector__signo vector__signo--menos" aria-hidden="true">−</span>
+  </div>
+
+  <figcaption class="vector__pie dato">
+    <span class="apagado">dimensión 1</span>
+    <span class="apagado">{{ etiqueta() }}</span>
+    <span class="apagado">{{ valores().length }}</span>
+  </figcaption>
+</figure>

@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.vector {
+  /* Acotado: a todo lo ancho las barras se separan tanto que la tira deja de
+     leerse como una serie y parece un patrón decorativo. */
+  width: min(100%, 40rem);
+  margin: 0;
+
+  &__caja {
+    position: relative;
+    height: var(--alto, 74px);
+    padding: 0 1.1rem;
+    border-radius: 8px;
+    background: var(--tinta-1);
+  }
+
+  /* La línea del cero: sin ella, las barras no significan nada. */
+  &__cero {
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: 1px;
+    background: var(--hilo-vivo);
+  }
+
+  &__barras {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    height: 100%;
+
+    i {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 7px;
+      border-radius: 1px;
+      background: var(--celda-mas);
+      /* Positivo hacia arriba desde el cero. */
+      transform-origin: bottom;
+      align-self: flex-start;
+      margin-top: auto;
+      transform: translateY(0);
+
+      &.neg {
+        background: var(--celda-menos);
+        align-self: flex-end;
+        margin-top: 0;
+        margin-bottom: auto;
+        transform-origin: top;
+      }
+    }
+  }
+
+  &__signo {
+    position: absolute;
+    left: 0.34rem;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    line-height: 1;
+    color: var(--papel-3);
+
+    &--mas {
+      top: 0.4rem;
+    }
+    &--menos {
+      bottom: 0.4rem;
+    }
+  }
+
+  &__pie {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+}

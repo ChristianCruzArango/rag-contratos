@@ -1,0 +1,92 @@
+:host {
+  display: block;
+}
+
+.pieza {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 1.4rem;
+  padding: 1.1rem 0;
+
+  &__margen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: right;
+    padding-top: 0.15rem;
+    border-right: 1px solid var(--hilo);
+    padding-right: 1rem;
+  }
+
+  &__cuerpo {
+    min-width: 0;
+  }
+
+  &__seccion {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    font-weight: 450;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--papel-2);
+    margin: 0 0 0.55rem;
+  }
+
+  &__texto {
+    margin: 0 0 0.5rem;
+    max-width: 68ch;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--papel-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &--ocr .pieza__margen {
+    border-right-color: color-mix(in oklab, var(--duda) 45%, transparent);
+  }
+}
+
+/* La costura entre dos fragmentos: donde se repite el final del anterior. */
+.costura {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 5.9rem;
+
+  span {
+    color: var(--papel-3);
+    white-space: nowrap;
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 3px;
+    border-radius: 999px;
+    background: repeating-linear-gradient(90deg, var(--duda-tenue) 0 8px, transparent 8px 14px);
+  }
+}
+
+@media (width <= 620px) {
+  .pieza {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+
+    &__margen {
+      flex-direction: row;
+      gap: 0.75rem;
+      text-align: left;
+      border-right: none;
+      padding-right: 0;
+      border-bottom: 1px solid var(--hilo);
+      padding-bottom: 0.4rem;
+    }
+  }
+
+  .costura {
+    margin-left: 0;
+  }
+}
